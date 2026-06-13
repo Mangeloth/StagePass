@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StagePass — Boletaje para la Escena Local</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --red:#CC0000; --red-h:#AA0000; --black:#0a0a0a; --card:#111;
+      --border:#222; --gray:#888; --light:#ccc; --white:#fff;
+      --green:#25D366; --green-h:#1ebe5a;
+      --fd:'Bebas Neue',sans-serif; --fu:'Barlow Condensed',sans-serif; --fb:'Barlow',sans-serif;
+      --nav:60px;
+    }
+    html { scroll-behavior:smooth; }
+    body { background:var(--black); font-family:var(--fb); color:var(--white); font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    img { display:block; max-width:100%; }
+    a { text-decoration:none; color:inherit; }
+    button { cursor:pointer; font-family:inherit; border:none; }
+
+    /* NAV */
+    .nav { position:sticky; top:0; z-index:100; height:var(--nav); background:#000; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; transition:box-shadow .3s; }
+    .nav.scrolled { box-shadow:0 2px 20px rgba(0,0,0,.7); }
+    .nav__logo { font-family:var(--fd); font-size:24px; letter-spacing:3px; flex-shrink:0; }
+    .nav__logo span { color:var(--red); }
+    .nav__links { display:flex; gap:28px; list-style:none; }
+    .nav__links a { font-family:var(--fu); font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); transition:color .2s; position:relative; padding-bottom:2px; }
+    .nav__links a::after { content:''; position:absolute; left:0; bottom:-2px; width:0; height:2px; background:var(--red); transition:width .25s; }
+    .nav__links a:hover { color:var(--white); }
+    .nav__links a:hover::after { width:100%; }
+    .nav__cta { background:var(--red); color:var(--white); padding:9px 18px; font-family:var(--fu); font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; border-radius:2px; transition:background .2s; white-space:nowrap; }
+    .nav__cta:hover { background:var(--red-h); }
+    .nav__hamburger { display:none; flex-direction:column; gap:5px; padding:4px; cursor:pointer; }
+    .nav__hamburger span { display:block; width:22px; height:2px; background:var(--white); transition:transform .3s,opacity .3s; }
+    .nav__mobile-menu { display:none; position:fixed; top:var(--nav); left:0; right:0; bottom:0; background:rgba(0,0,0,.97); flex-direction:column; align-items:center; justify-content:center; gap:32px; z-index:99; }
+    .nav__mobile-menu.open { display:flex; }
+    .nav__mobile-menu a { font-family:var(--fd); font-size:36px; letter-spacing:3px; color:var(--white); transition:color .2s; }
+    .nav__mobile-menu a:hover { color:var(--red); }
+    .nav__mobile-menu .nav__cta { font-size:16px; padding:14px 32px; }
+
+    /* HERO */
+    .hero { position:relative; min-height:calc(100svh - var(--nav)); display:flex; align-items:center; padding:60px 24px 80px; overflow:hidden; }
+    .hero__bg { position:absolute; inset:0; z-index:0; background-color:#110808; background-image:repeating-linear-gradient(45deg,transparent,transparent 22px,rgba(255,255,255,.012) 22px,rgba(255,255,255,.012) 44px); }
+    .hero__gradient { position:absolute; inset:0; z-index:1; background:linear-gradient(108deg,rgba(0,0,0,.96) 0%,rgba(40,0,0,.82) 35%,rgba(120,0,0,.22) 65%,rgba(0,0,0,.08) 100%); }
+    .hero__fade { position:absolute; left:0; right:0; bottom:0; z-index:2; height:100px; background:linear-gradient(to bottom,transparent,var(--black)); }
+    .hero__line { position:absolute; left:0; right:0; bottom:0; z-index:3; height:3px; background:linear-gradient(90deg,transparent,var(--red) 25%,var(--red) 75%,transparent); }
+    .hero__content { position:relative; z-index:4; max-width:580px; }
+    .hero__eyebrow { display:inline-block; background:var(--red); color:var(--white); font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; padding:4px 12px; margin-bottom:20px; }
+    .hero__title { font-family:var(--fd); font-size:clamp(52px,10vw,88px); line-height:.88; letter-spacing:2px; margin-bottom:18px; }
+    .hero__title em { color:var(--red); font-style:normal; }
+    .hero__sub { font-size:clamp(13px,2vw,16px); color:var(--light); line-height:1.7; max-width:420px; margin-bottom:32px; }
+    .hero__actions { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn-primary { background:var(--red); color:var(--white); border:2px solid var(--red); padding:13px 28px; font-family:var(--fu); font-size:14px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; border-radius:2px; transition:background .2s; }
+    .btn-primary:hover { background:var(--red-h); border-color:var(--red-h); }
+    .btn-ghost { background:rgba(255,255,255,.08); color:var(--white); border:2px solid rgba(255,255,255,.4); padding:13px 28px; font-family:var(--fu); font-size:14px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; border-radius:2px; transition:background .2s,border-color .2s; }
+    .btn-ghost:hover { background:rgba(255,255,255,.15); border-color:rgba(255,255,255,.7); }
+    .hero__stats { position:absolute; bottom:32px; left:24px; z-index:4; display:flex; gap:32px; }
+    .hero__stat { display:flex; flex-direction:column; }
+    .hero__stat-num { font-family:var(--fd); font-size:28px; letter-spacing:1px; line-height:1; }
+    .hero__stat-num span { color:var(--red); }
+    .hero__stat-label { font-size:10px; color:var(--gray); letter-spacing:1.5px; text-transform:uppercase; margin-top:3px; }
+
+    /* SECTIONS */
+    .section { padding:64px 24px; }
+    .section--dark { background:#0f0f0f; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .section__header { display:flex; align-items:baseline; gap:16px; margin-bottom:36px; }
+    .section__title { font-family:var(--fd); font-size:clamp(28px,5vw,38px); letter-spacing:2px; white-space:nowrap; }
+    .section__line { flex:1; height:1px; background:var(--border); min-width:20px; }
+    .section__link { font-family:var(--fu); font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); white-space:nowrap; cursor:pointer; }
+    .section__link:hover { opacity:.7; }
+
+    /* EVENT CARDS */
+    .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; min-height:200px; }
+    .events-loading { grid-column:1/-1; text-align:center; padding:60px; font-family:var(--fu); font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#444; }
+    .event-card { cursor:pointer; outline:none; }
+    .card-front { background:var(--card); border:1px solid var(--border); border-radius:4px; overflow:hidden; transition:border-color .25s,box-shadow .25s,transform .25s; }
+    .event-card:hover .card-front, .event-card:focus-visible .card-front { border-color:var(--red); box-shadow:0 6px 28px rgba(204,0,0,.18); transform:translateY(-2px); }
+    .card-banner { width:100%; aspect-ratio:8/3; position:relative; overflow:hidden; background:#1a1a1a; }
+    .card-banner img { width:100%; height:100%; object-fit:cover; transition:transform .4s; }
+    .event-card:hover .card-banner img { transform:scale(1.04); }
+    .card-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px; }
+    .cp-1 { background:linear-gradient(135deg,#1a0000,#3d0c0c,#0d0d0d); }
+    .cp-2 { background:linear-gradient(135deg,#00001a,#0c0c3d,#0d0d0d); }
+    .cp-3 { background:linear-gradient(135deg,#001a00,#0c3d0c,#0d0d0d); }
+    .cp-band { font-family:var(--fd); font-size:20px; letter-spacing:4px; }
+    .cp-sub { font-size:9px; color:var(--gray); letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
+    .card-price { position:absolute; top:8px; right:8px; background:var(--red); color:var(--white); font-family:var(--fu); font-size:12px; font-weight:700; padding:3px 8px; border-radius:2px; }
+    .card-avail { position:absolute; bottom:8px; left:8px; font-family:var(--fu); font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:2px; }
+    .av-few  { background:rgba(26,26,0,.85); color:#cc0; border:1px solid #444400; }
+    .av-ok   { background:rgba(0,26,0,.85); color:#0c6; border:1px solid #004400; }
+    .av-sold { background:rgba(26,0,0,.85); color:#c33; border:1px solid #440000; }
+    .card-info { padding:13px 14px 15px; }
+    .card-name { font-family:var(--fu); font-size:15px; font-weight:700; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-meta { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .card-venue { font-size:11px; color:var(--gray); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .card-status { font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:.5px; padding:2px 7px; border-radius:10px; white-space:nowrap; flex-shrink:0; }
+    .cs-few  { background:#1a1a00; color:#cc0; border:1px solid #333300; }
+    .cs-ok   { background:#001a00; color:#0c6; border:1px solid #003300; }
+    .cs-sold { background:#1a0000; color:#c33; border:1px solid #330000; }
+
+    /* OVERLAY (flyer 9:16) */
+    .overlay-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); z-index:200; animation:bgIn .3s; }
+    @keyframes bgIn { from{opacity:0}to{opacity:1} }
+    .overlay-card { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:201; height:min(88svh,620px); width:calc(min(88svh,620px) * 9 / 16); }
+    .overlay-inner { width:100%; height:100%; animation:flipIn .6s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes flipIn { from{transform:rotateY(-180deg) scale(.65);opacity:0}to{transform:rotateY(0deg) scale(1);opacity:1} }
+    .overlay-flyer { width:100%; height:100%; border-radius:6px; overflow:hidden; border:1px solid var(--red); box-shadow:0 0 70px rgba(204,0,0,.35); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px 20px; }
+    .flyer--red   { background:linear-gradient(160deg,#1a0000 0%,#3a0808 40%,#0a0a0a 100%); }
+    .flyer--blue  { background:linear-gradient(160deg,#00001a 0%,#0a0a3a 40%,#0a0a0a 100%); }
+    .flyer--green { background:linear-gradient(160deg,#001a00 0%,#0a3a0a 40%,#0a0a0a 100%); }
+    .ov-content { display:flex; flex-direction:column; align-items:center; width:100%; }
+    .ov-tag { background:var(--red); color:var(--white); font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:4px 14px; border-radius:2px; margin-bottom:18px; }
+    .ov-band { font-family:var(--fd); font-size:clamp(28px,6vw,42px); letter-spacing:4px; line-height:1; margin-bottom:5px; }
+    .ov-cover { font-size:11px; color:#aaa; letter-spacing:2px; text-transform:uppercase; margin-bottom:18px; }
+    .ov-div { width:48px; height:1px; background:var(--red); margin:0 auto 18px; }
+    .ov-venue { font-size:11px; color:var(--red); font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+    .ov-date { font-family:var(--fd); font-size:clamp(52px,10vw,72px); line-height:1; }
+    .ov-month { font-size:12px; color:#aaa; letter-spacing:3px; text-transform:uppercase; margin-bottom:24px; }
+    .ov-price { font-family:var(--fu); font-size:18px; font-weight:700; margin-bottom:18px; }
+    .ov-price em { color:var(--red); font-style:normal; }
+    .ov-cta { width:100%; background:var(--red); color:var(--white); font-family:var(--fu); font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:12px; border-radius:2px; margin-bottom:9px; transition:background .2s; border:none; cursor:pointer; }
+    .ov-cta:hover { background:var(--red-h); }
+    .ov-close { width:100%; background:transparent; border:1px solid #444; color:#888; font-family:var(--fu); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; padding:9px; border-radius:2px; transition:border-color .2s,color .2s; cursor:pointer; }
+    .ov-close:hover { border-color:var(--white); color:var(--white); }
+
+    /* SERVICES */
+    .services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+    .service-item { background:var(--card); padding:32px 28px; position:relative; overflow:hidden; transition:background .3s; }
+    .service-item:hover { background:#141414; }
+    .service-item::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--red); transform:scaleX(0); transform-origin:left; transition:transform .35s; }
+    .service-item:hover::before { transform:scaleX(1); }
+    .service-item__icon { font-size:28px; margin-bottom:14px; display:block; }
+    .service-item__title { font-family:var(--fu); font-size:18px; font-weight:700; color:var(--white); margin-bottom:10px; }
+    .service-item__desc { font-size:13px; color:var(--gray); line-height:1.7; }
+    .service-item__desc strong { color:var(--light); font-weight:500; }
+    .why-strip { border-top:1px solid var(--border); padding:44px 24px; display:grid; grid-template-columns:auto 1fr; gap:44px; align-items:center; }
+    .why-heading { font-family:var(--fd); font-size:clamp(28px,4vw,40px); letter-spacing:2px; line-height:1; white-space:nowrap; }
+    .why-heading em { color:var(--red); font-style:normal; }
+    .why-points { display:grid; grid-template-columns:repeat(2,1fr); gap:18px 36px; list-style:none; }
+    .why-point { display:flex; gap:10px; }
+    .why-bullet { width:6px; height:6px; background:var(--red); border-radius:50%; flex-shrink:0; margin-top:7px; }
+    .why-text { font-size:13px; color:var(--gray); line-height:1.6; }
+    .why-text strong { color:var(--white); font-weight:600; display:block; margin-bottom:1px; }
+
+    /* GALLERY */
+    .gallery-section { overflow:hidden; border-top:1px solid var(--border); background:var(--black); }
+    .gallery-header { padding:52px 24px 20px; display:flex; align-items:baseline; gap:16px; }
+    .gallery-carousel-wrap { position:relative; }
+    .gallery-track {
+      display:flex; flex-direction:row; flex-wrap:nowrap;
+      gap:3px; overflow-x:auto; overflow-y:hidden;
+      scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none; cursor:grab; align-items:stretch;
+    }
+    .gallery-track::-webkit-scrollbar { display:none; }
+    .gallery-track.grabbing { cursor:grabbing; user-select:none; }
+    .gallery-tile {
+      flex-shrink:0; scroll-snap-align:start; position:relative; overflow:hidden;
+      width:clamp(170px,26vw,230px); aspect-ratio:9/16; background:#1a1a1a; cursor:pointer; display:block;
+    }
+    .gallery-tile__media { position:absolute; inset:0; }
+    .gallery-tile__media img { width:100%; height:100%; object-fit:cover; display:block; }
+    .gallery-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+    .gp-1{background:linear-gradient(160deg,#1a0000,#2d0808,#0d0d0d)}
+    .gp-2{background:linear-gradient(160deg,#00001a,#080820,#0d0d0d)}
+    .gp-3{background:linear-gradient(160deg,#001a00,#082008,#0d0d0d)}
+    .gp-4{background:linear-gradient(160deg,#1a0a00,#2d1a08,#0d0d0d)}
+    .gp-5{background:linear-gradient(160deg,#1a001a,#200820,#0d0d0d)}
+    .gallery-placeholder-icon  { font-size:28px; opacity:.3; }
+    .gallery-placeholder-label { font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.18); text-align:center; padding:0 12px; }
+    .gallery-tile__info { position:absolute; left:0; right:0; bottom:0; z-index:2; padding:14px 12px 11px; background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.25) 60%,transparent 100%); }
+    .gallery-tile__name { font-family:var(--fd); font-size:15px; letter-spacing:1.5px; color:#fff; line-height:1.15; }
+    .gallery-tile__date { font-family:var(--fu); font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,.55); margin-top:3px; }
+    .gallery-tile__play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:46px; height:46px; background:rgba(0,0,0,.55); border:2px solid rgba(255,255,255,.7); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; z-index:3; pointer-events:none; }
+    .gallery-tile__badge { position:absolute; top:10px; right:10px; z-index:3; background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.3); color:#fff; font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:1px; padding:2px 8px; border-radius:10px; }
+
+    /* MODAL: galeria de evento */
+    .gmodal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:300; }
+    .gmodal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:301; width:min(640px,94vw); max-height:92vh; overflow-y:auto; background:#0a0a0a; border:1px solid var(--border); border-radius:8px; }
+    .gmodal__head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:#0a0a0a; z-index:2; }
+    .gmodal__title { font-family:var(--fd); font-size:18px; letter-spacing:1.5px; line-height:1.2; }
+    .gmodal__date { font-family:var(--fu); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); margin-top:4px; }
+    .gmodal__close { background:none; border:none; color:var(--gray); font-size:22px; cursor:pointer; transition:color .2s; flex-shrink:0; }
+    .gmodal__close:hover { color:#fff; }
+
+    /* Visor principal */
+    .gmodal__viewer { position:relative; width:100%; aspect-ratio:4/5; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; touch-action:pan-y; }
+    .gmodal__viewer img { width:100%; height:100%; object-fit:contain; display:block; }
+    .gmodal__viewer iframe { width:100%; height:100%; border:none; display:block; }
+    .gmodal__viewer-nav { position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.35); border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:3; }
+    .gmodal__viewer-nav--prev { left:10px; }
+    .gmodal__viewer-nav--next { right:10px; }
+    .gmodal__viewer-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:58px; height:58px; background:rgba(0,0,0,.55); border:2px solid rgba(255,255,255,.7); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; cursor:pointer; z-index:3; }
+
+    /* Carrusel de miniaturas */
+    .gmodal__filmstrip { display:flex; gap:6px; overflow-x:auto; padding:10px 12px; scrollbar-width:none; }
+    .gmodal__filmstrip::-webkit-scrollbar { display:none; }
+    .gmodal__thumb { flex-shrink:0; width:60px; height:60px; border-radius:4px; overflow:hidden; cursor:pointer; position:relative; border:2px solid transparent; opacity:.55; transition:opacity .2s,border-color .2s; }
+    .gmodal__thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .gmodal__thumb.active { opacity:1; border-color:var(--red); }
+    .gmodal__thumb-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; background:rgba(0,0,0,.25); }
+
+    .gallery-arrow { position:absolute; top:50%; transform:translateY(-50%); width:40px; height:40px; background:rgba(0,0,0,.75); border:1px solid #333; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:5; transition:background .2s,border-color .2s; line-height:1; }
+    .gallery-arrow:hover { background:var(--red); border-color:var(--red); }
+    .gallery-arrow--left  { left:10px; }
+    .gallery-arrow--right { right:10px; }
+    .gallery-dots { display:flex; justify-content:center; align-items:center; gap:5px; padding:16px 0 48px; }
+    .gallery-dot { height:5px; width:5px; border-radius:3px; background:#2a2a2a; transition:background .3s,width .3s; }
+    .gallery-dot.active { background:var(--red); width:20px; }
+
+    /* CONTACT */
+    .contact-inner { display:flex; align-items:center; justify-content:space-between; gap:40px; margin-bottom:40px; }
+    .contact__label { display:inline-block; background:var(--red); color:var(--white); font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; padding:4px 12px; margin-bottom:14px; border-radius:2px; }
+    .contact__title { font-family:var(--fd); font-size:clamp(24px,4vw,38px); letter-spacing:2px; line-height:1.05; margin-bottom:12px; }
+    .contact__sub { font-size:14px; color:var(--gray); line-height:1.7; max-width:380px; }
+    .btn-whatsapp { display:inline-flex; align-items:center; gap:10px; background:var(--green); color:var(--white); border:2px solid var(--green); padding:14px 26px; font-family:var(--fu); font-size:14px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; border-radius:2px; white-space:nowrap; flex-shrink:0; transition:background .2s; }
+    .btn-whatsapp svg { width:20px; height:20px; fill:var(--white); flex-shrink:0; }
+    .btn-whatsapp:hover { background:var(--green-h); border-color:var(--green-h); }
+    .contact-info-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+    .contact-info-item { background:#0f0f0f; padding:16px 18px; }
+    .ci-label { font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:5px; }
+    .ci-value { font-size:13px; color:var(--light); font-weight:500; }
+    .ci-value a { color:var(--light); transition:color .2s; }
+    .ci-value a:hover { color:var(--white); }
+
+    /* FOOTER */
+    .footer { background:#000; border-top:1px solid var(--border); }
+    .footer-top { display:flex; align-items:center; justify-content:space-between; padding:28px 24px; border-bottom:1px solid var(--border); gap:24px; flex-wrap:wrap; }
+    .footer__logo { font-family:var(--fd); font-size:20px; letter-spacing:3px; flex-shrink:0; }
+    .footer__logo span { color:var(--red); }
+    .footer__nav { display:flex; gap:24px; list-style:none; flex-wrap:wrap; }
+    .footer__nav a { font-family:var(--fu); font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); transition:color .2s; }
+    .footer__nav a:hover { color:var(--white); }
+    .footer__social { display:flex; gap:10px; flex-shrink:0; }
+    .footer__social-link { display:flex; align-items:center; justify-content:center; width:34px; height:34px; background:var(--card); border:1px solid var(--border); border-radius:2px; color:var(--gray); transition:background .2s,color .2s; }
+    .footer__social-link:hover { background:var(--border); color:var(--white); }
+    .footer-bottom { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; gap:12px; flex-wrap:wrap; }
+    .footer__copy { font-size:11px; color:#555; }
+    .footer__tagline { font-size:10px; color:#444; letter-spacing:1.5px; text-transform:uppercase; }
+    .footer__legal { display:flex; gap:16px; flex-wrap:wrap; }
+    .footer__legal a { font-size:11px; color:#555; transition:color .2s; }
+    .footer__legal a:hover { color:var(--gray); }
+
+    /* SCROLL TOP */
+    .scroll-top { position:fixed; bottom:24px; right:24px; z-index:99; width:40px; height:40px; background:var(--red); color:var(--white); border-radius:2px; font-size:18px; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .3s,transform .2s; }
+    .scroll-top.visible { opacity:1; pointer-events:auto; }
+    .scroll-top:hover { transform:translateY(-2px); }
+
+    /* RESPONSIVE */
+    @media (max-width:1024px) {
+      .events-grid { grid-template-columns:repeat(2,1fr); }
+      .services-grid { grid-template-columns:repeat(2,1fr); }
+      .why-strip { grid-template-columns:1fr; gap:28px; }
+      .contact-info-row { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:768px) {
+      :root { --nav:56px; }
+      .nav { padding:0 16px; }
+      .nav__links { display:none; }
+      .nav__cta { display:none; }
+      .nav__hamburger { display:flex; }
+      .hero { padding:48px 16px 90px; min-height:calc(100svh - var(--nav)); }
+      .hero__sub { max-width:100%; }
+      .hero__actions { flex-direction:column; }
+      .btn-primary, .btn-ghost { width:100%; text-align:center; }
+      .hero__stats { left:16px; gap:24px; bottom:24px; }
+      .hero__stat-num { font-size:22px; }
+      .section { padding:48px 16px; }
+      .section__link { display:none; }
+      .events-grid { grid-template-columns:1fr; gap:14px; }
+      .card-name { white-space:normal; }
+      .overlay-card { width:min(92vw, calc(88svh * 9/16)); height:auto; aspect-ratio:9/16; }
+      .services-grid { grid-template-columns:1fr; gap:0; }
+      .service-item { padding:24px 18px; border-bottom:1px solid var(--border); }
+      .service-item:last-child { border-bottom:none; }
+      .why-strip { padding:36px 16px; grid-template-columns:1fr; gap:24px; }
+      .why-points { grid-template-columns:1fr; gap:14px; }
+      .why-heading { white-space:normal; font-size:32px; }
+      .contact-inner { flex-direction:column; align-items:flex-start; gap:24px; margin-bottom:28px; }
+      .btn-whatsapp { width:100%; justify-content:center; }
+      .contact-info-row { grid-template-columns:1fr 1fr; }
+      .footer-top { flex-direction:column; align-items:flex-start; gap:20px; padding:24px 16px; }
+      .footer-bottom { flex-direction:column; align-items:flex-start; gap:10px; padding:16px 16px; }
+      .gallery-header { padding:36px 16px 16px; }
+      .gallery-arrow { display:none; }
+      .gallery-tile { width:clamp(150px,62vw,210px); }
+    }
+    @media (max-width:400px) {
+      .hero__title { font-size:46px; }
+      .contact-info-row { grid-template-columns:1fr; }
+      .footer__nav { flex-direction:column; gap:12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- OVERLAY FLYER 9:16 -->
+  <div class="overlay-backdrop" id="overlayBackdrop"></div>
+  <div class="overlay-card" id="overlayCard">
+    <div class="overlay-inner" id="overlayInner">
+      <div class="overlay-flyer" id="overlayFlyer"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: GALERIA DE EVENTO -->
+  <div class="gmodal-backdrop" id="gmodalBackdrop" onclick="closeEventGallery()"></div>
+  <div class="gmodal" id="gmodal">
+    <div class="gmodal__head">
+      <div>
+        <div class="gmodal__title" id="gmodalTitle"></div>
+        <div class="gmodal__date" id="gmodalDate"></div>
+      </div>
+      <button class="gmodal__close" onclick="closeEventGallery()">&#10005;</button>
+    </div>
+    <div class="gmodal__viewer" id="gmodalViewer">
+      <button class="gmodal__viewer-nav gmodal__viewer-nav--prev" onclick="gmodalNav(-1)">&#8249;</button>
+      <button class="gmodal__viewer-nav gmodal__viewer-nav--next" onclick="gmodalNav(1)">&#8250;</button>
+    </div>
+    <div class="gmodal__filmstrip" id="gmodalFilmstrip"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav" id="mainNav">
+    <a href="/" class="nav__logo">STAGE<span>PASS</span></a>
+    <ul class="nav__links">
+      <li><a href="#cartelera">Cartelera</a></li>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <button class="nav__cta" onclick="document.getElementById('cartelera').scrollIntoView({behavior:'smooth'})">Ver Cartelera &darr;</button>
+    <div class="nav__hamburger" id="hamburger" onclick="toggleMenu()">
+      <span id="hb1"></span><span id="hb2"></span><span id="hb3"></span>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="nav__mobile-menu" id="mobileMenu">
+    <a href="#cartelera" onclick="toggleMenu()">Cartelera</a>
+    <a href="#servicios" onclick="toggleMenu()">Servicios</a>
+    <a href="#nosotros" onclick="toggleMenu()">Nosotros</a>
+    <a href="#contacto" onclick="toggleMenu()">Contacto</a>
+    <button class="nav__cta" onclick="toggleMenu();document.getElementById('cartelera').scrollIntoView({behavior:'smooth'})">Ver Cartelera &darr;</button>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" aria-label="Inicio">
+    <div class="hero__bg"></div>
+    <div class="hero__gradient"></div>
+    <div class="hero__fade"></div>
+    <div class="hero__line"></div>
+    <div class="hero__content">
+      <span class="hero__eyebrow">Boletaje y Gestion para la Escena Local</span>
+      <h1 class="hero__title">TU PROXIMO<br>CONCIERTO<br><em>TE ESPERA</em></h1>
+      <p class="hero__sub">Boletos, reservacion de mesas y acceso sin filas para los mejores eventos en vivo de Veracruz.</p>
+      <div class="hero__actions">
+        <button class="btn-primary" onclick="document.getElementById('cartelera').scrollIntoView({behavior:'smooth'})">Ver Cartelera</button>
+        <button class="btn-ghost"   onclick="document.getElementById('contacto').scrollIntoView({behavior:'smooth'})">Eres banda? Contactanos</button>
+      </div>
+    </div>
+    <div class="hero__stats">
+      <div class="hero__stat"><span class="hero__stat-num">100<span>%</span></span><span class="hero__stat-label">Pago seguro</span></div>
+      <div class="hero__stat"><span class="hero__stat-num">QR</span><span class="hero__stat-label">Acceso expres</span></div>
+      <div class="hero__stat"><span class="hero__stat-num"><span>#</span>1</span><span class="hero__stat-label">Escena local</span></div>
+    </div>
+  </section>
+
+  <!-- CARTELERA -->
+  <section class="section" id="cartelera">
+    <div class="section__header">
+      <h2 class="section__title">Cartelera</h2>
+      <div class="section__line"></div>
+      <span class="section__link">Ver todos &rarr;</span>
+    </div>
+    <div class="events-grid" id="eventsGrid">
+      <div class="events-loading" id="eventsLoading">Cargando cartelera...</div>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section class="section section--dark" id="servicios">
+    <div class="section__header">
+      <h2 class="section__title">Por que StagePass?</h2>
+      <div class="section__line"></div>
+    </div>
+    <div class="services-grid">
+      <div class="service-item"><span class="service-item__icon">&#127903;</span><h3 class="service-item__title">Preventa Online</h3><p class="service-item__desc">Compra desde casa. Pago seguro via <strong>Mercado Pago</strong> y confirmacion inmediata por WhatsApp o email.</p></div>
+      <div class="service-item"><span class="service-item__icon">&#129681;</span><h3 class="service-item__title">Reserva tu Mesa</h3><p class="service-item__desc">Elige tu lugar en el <strong>mapa interactivo del recinto</strong>. Selecciona tus asientos como en el cine.</p></div>
+      <div class="service-item"><span class="service-item__icon">&#128247;</span><h3 class="service-item__title">Boleto Digital QR</h3><p class="service-item__desc">Cada asiento genera un <strong>boleto individual con QR</strong> unico. Compartelo directo desde tu celular.</p></div>
+      <div class="service-item"><span class="service-item__icon">&#9889;</span><h3 class="service-item__title">Acceso Expres</h3><p class="service-item__desc">Escaneo instantaneo en taquilla. <strong>Sin filas</strong>, sin impresiones. Control en tiempo real.</p></div>
+      <div class="service-item"><span class="service-item__icon">&#128274;</span><h3 class="service-item__title">Pago 100% Seguro</h3><p class="service-item__desc">Procesado por <strong>Mercado Pago</strong>, la plataforma mas confiable de Latinoamerica.</p></div>
+      <div class="service-item"><span class="service-item__icon">&#128172;</span><h3 class="service-item__title">Atencion Directa</h3><p class="service-item__desc">Soporte real por <strong>WhatsApp</strong>. Sin bots, atendido por el equipo de StagePass.</p></div>
+    </div>
+    <div class="why-strip" id="nosotros">
+      <div class="why-heading">HECHO POR<br>MUSICOS,<br><em>PARA MUSICOS.</em></div>
+      <ul class="why-points">
+        <li class="why-point"><div class="why-bullet"></div><div class="why-text"><strong>Reporte de ventas</strong>Entrega clara de ganancias al talento al finalizar el evento.</div></li>
+        <li class="why-point"><div class="why-bullet"></div><div class="why-text"><strong>Base de datos de fans</strong>Conoce quien asiste a tus eventos para futuras convocatorias.</div></li>
+        <li class="why-point"><div class="why-bullet"></div><div class="why-text"><strong>Control de acceso</strong>Registro completo de entradas con hora y cajero en tiempo real.</div></li>
+        <li class="why-point"><div class="why-bullet"></div><div class="why-text"><strong>Tu dedicate a tocar</strong>Nosotros nos encargamos de todo lo operativo del evento.</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section class="section--dark gallery-section" id="galeria">
+    <div class="gallery-header">
+      <h2 class="section__title">La Escena en Vivo</h2>
+      <div class="section__line"></div>
+      <span class="section__link">Ver todo &rarr;</span>
+    </div>
+    <div class="gallery-carousel-wrap">
+      <button class="gallery-arrow gallery-arrow--left"  onclick="scrollGallery(-1)">&#8249;</button>
+      <button class="gallery-arrow gallery-arrow--right" onclick="scrollGallery(1)">&#8250;</button>
+      <div class="gallery-track" id="galleryTrack">
+        <div style="padding:60px 24px;font-family:var(--fu);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#444">Cargando galeria...</div>
+      </div>
+    </div>
+    <div class="gallery-dots" id="galleryDots"></div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="section" id="contacto">
+    <div class="contact-inner">
+      <div>
+        <span class="contact__label">Soporte y Atencion</span>
+        <h2 class="contact__title">NECESITAS AYUDA<br>CON TU RESERVACION?</h2>
+        <p class="contact__sub">Escribenos directamente por WhatsApp. Atencion real, sin bots.</p>
+      </div>
+      <a class="btn-whatsapp" href="https://wa.me/522206147813" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Hablar por WhatsApp
+      </a>
+    </div>
+    <div class="contact-info-row">
+      <div class="contact-info-item"><div class="ci-label">WhatsApp</div><div class="ci-value"><a href="https://wa.me/522206147813" target="_blank">+52 220 614 7813</a></div></div>
+      <div class="contact-info-item"><div class="ci-label">Ciudad</div><div class="ci-value">Veracruz, Mexico</div></div>
+      <div class="contact-info-item"><div class="ci-label">Recinto principal</div><div class="ci-value">McCarthys Bar</div></div>
+      <div class="contact-info-item"><div class="ci-label">Horario</div><div class="ci-value">Lun - Vie &middot; 10:00 - 20:00 hrs</div></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-top">
+      <!-- Logo = acceso oculto al admin -->
+      <a href="stagepass_admin_v2.html" class="footer__logo" title="">STAGE<span>PASS</span></a>
+      <ul class="footer__nav">
+        <li><a href="#cartelera">Cartelera</a></li>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+      <div class="footer__social">
+        <a class="footer__social-link" href="https://wa.me/522206147813" target="_blank" rel="noopener" title="WhatsApp">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer__copy">2025 StagePass. Todos los derechos reservados.</p>
+      <span class="footer__tagline">Boletaje y gestion para la escena local</span>
+      <nav class="footer__legal"><a href="#">Terminos</a><a href="#">Privacidad</a><a href="#">Reembolso</a></nav>
+    </div>
+  </footer>
+
+  <button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+  <script>
+    // ── SUPABASE ──────────────────────────────────────────────
+    var SB_URL = 'https://hrvmubcmefdpvfpzqibv.supabase.co';
+    var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhydm11YmNtZWZkcHZmcHpxaWJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTcwODcsImV4cCI6MjA5NjYzMzA4N30.u0xB37zHHHSmiXQeBIOygoUbCpqkD7MLl2K9HB44lHo';
+    var SB_HDR = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+    function sbGet(table, params) {
+      var url = SB_URL + '/rest/v1/' + table + '?';
+      var parts = [];
+      for (var k in params) parts.push(k + '=' + encodeURIComponent(params[k]));
+      url += parts.join('&');
+      return fetch(url, { headers: SB_HDR }).then(function(r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      });
+    }
+
+    // ── NAV ───────────────────────────────────────────────────
+    var nav = document.getElementById('mainNav');
+    var stb = document.getElementById('scrollTopBtn');
+    window.addEventListener('scroll', function() {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+      stb.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+
+    var menuOpen = false;
+    function toggleMenu() {
+      menuOpen = !menuOpen;
+      document.getElementById('mobileMenu').classList.toggle('open', menuOpen);
+      document.getElementById('hb1').style.transform = menuOpen ? 'translateY(7px) rotate(45deg)' : '';
+      document.getElementById('hb2').style.opacity  = menuOpen ? '0' : '1';
+      document.getElementById('hb3').style.transform = menuOpen ? 'translateY(-7px) rotate(-45deg)' : '';
+      document.body.style.overflow = menuOpen ? 'hidden' : '';
+    }
+
+    // ── OVERLAY (flyer 9:16) ──────────────────────────────────
+    var ovBackdrop = document.getElementById('overlayBackdrop');
+    var ovCard     = document.getElementById('overlayCard');
+    var ovInner    = document.getElementById('overlayInner');
+    var ovFlyer    = document.getElementById('overlayFlyer');
+
+    function openOverlay(card) {
+      var d    = card.dataset;
+      var tag  = d.status === 'sold' ? 'Agotado' : 'En Vivo';
+      ovFlyer.className = 'overlay-flyer ' + (d.color || 'flyer--red');
+      if (d.flyer) {
+        var op = (d.opacity !== undefined && d.opacity !== '') ? parseFloat(d.opacity) : 0.5;
+        ovFlyer.style.backgroundImage = 'linear-gradient(rgba(10,10,10,'+op+'),rgba(10,10,10,'+op+')), url("' + d.flyer + '")';
+        ovFlyer.style.backgroundSize = 'cover';
+        ovFlyer.style.backgroundPosition = 'center';
+      } else {
+        ovFlyer.style.backgroundImage = '';
+      }
+      ovFlyer.innerHTML =
+        '<div class="ov-content">'
+        + '<span class="ov-tag">' + tag + '</span>'
+        + '<div class="ov-band">' + (d.band || '') + '</div>'
+        + '<div class="ov-cover">' + (d.cover || '') + '</div>'
+        + '<div class="ov-div"></div>'
+        + '<div class="ov-venue">' + (d.venue || '') + '</div>'
+        + '<div class="ov-date">' + (d.date || '') + '</div>'
+        + '<div class="ov-month">' + (d.month || '') + '</div>'
+        + '<div class="ov-price"><em>' + (d.price || '') + '</em> por persona</div>'
+        + '<button class="ov-cta" onclick="handleCta(event,\'' + d.status + '\',\'' + (d.id || '') + '\')">' + (d.cta || 'Reservar') + '</button>'
+        + '<button class="ov-close" onclick="closeOverlay()">&#8592; Volver a la cartelera</button>'
+        + '</div>';
+      ovInner.style.animation = 'none';
+      ovInner.offsetHeight;
+      ovInner.style.animation = '';
+      ovBackdrop.style.display = ovCard.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeOverlay() {
+      ovBackdrop.style.display = ovCard.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function handleCta(e, status, evId) {
+      e.stopPropagation();
+      if (status === 'sold') {
+        alert('Te avisaremos si se liberan lugares. Gracias por tu interes!');
+      } else {
+        window.location.href = 'stagepass_evento_v4.html' + (evId ? '?event=' + evId : '');
+      }
+    }
+
+    ovBackdrop.addEventListener('click', closeOverlay);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { closeOverlay(); closeEventGallery(); }
+    });
+
+    // ── LOAD EVENTS FROM SUPABASE ─────────────────────────────
+    var FLYER_COLORS = ['flyer--red', 'flyer--blue', 'flyer--green', 'flyer--red', 'flyer--blue'];
+    var CARD_BG      = ['cp-1', 'cp-2', 'cp-3', 'cp-1', 'cp-2'];
+
+    function fmtPrice(cents) { return '$' + (cents / 100).toLocaleString('es-MX'); }
+    function fmtDateShort(str) {
+      var d = new Date(str + 'T12:00:00');
+      return d.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+    }
+    function fmtDay(str)   { return new Date(str + 'T12:00:00').getDate() + ''; }
+    function fmtMonth(str) { return new Date(str + 'T12:00:00').toLocaleDateString('es-MX', { month:'long', year:'numeric' }); }
+
+    function attachCardEvents() {
+      document.querySelectorAll('.event-card').forEach(function(card) {
+        card.addEventListener('click', function() { openOverlay(card); });
+        card.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOverlay(card); }
+        });
+      });
+    }
+
+    function loadEvents() {
+      sbGet('events', {
+        select: 'id,band_name,cover_of,event_date,price_presale,price_door,presale_active,status,banner_url,flyer_url,flyer_overlay_opacity,venues(name)',
+        status: 'in.(published,sold_out)',
+        order:  'event_date.asc',
+        limit:  '12'
+      }).then(function(events) {
+        var grid = document.getElementById('eventsGrid');
+        if (!events || events.length === 0) {
+          grid.innerHTML = '<div class="events-loading">Proximos eventos muy pronto...</div>';
+          return;
+        }
+        var html = events.map(function(ev, i) {
+          var sold   = ev.status === 'sold_out';
+          var price  = ev.presale_active && ev.price_presale ? fmtPrice(ev.price_presale) : (ev.price_door ? fmtPrice(ev.price_door) : '');
+          var color  = FLYER_COLORS[i % FLYER_COLORS.length];
+          var bg     = CARD_BG[i % CARD_BG.length];
+          var venue  = (ev.venues && ev.venues.name) ? ev.venues.name : 'McCarthys Bar';
+          var avCls  = sold ? 'av-sold' : 'av-ok';
+          var avTxt  = sold ? 'Agotado' : 'Disponible';
+          var stCls  = sold ? 'cs-sold' : 'cs-ok';
+          var cta    = sold ? 'Lista de Espera' : 'Reservar Mesa';
+          var status = sold ? 'sold' : 'ok';
+          var ds     = fmtDateShort(ev.event_date);
+          var banner = ev.banner_url
+            ? '<img src="' + ev.banner_url + '" alt="' + ev.band_name + '" loading="lazy"/>'
+            : '<div class="card-placeholder ' + bg + '"><div class="cp-band">' + ev.band_name.toUpperCase() + '</div><div class="cp-sub">' + (ev.cover_of || '') + '</div></div>';
+          return '<article class="event-card" tabindex="0" role="button"'
+            + ' data-id="'    + ev.id + '"'
+            + ' data-band="'  + ev.band_name.toUpperCase() + '"'
+            + ' data-cover="' + (ev.cover_of || '') + '"'
+            + ' data-venue="' + venue + '"'
+            + ' data-date="'  + fmtDay(ev.event_date) + '"'
+            + ' data-month="' + fmtMonth(ev.event_date) + '"'
+            + ' data-price="' + price + '"'
+            + ' data-cta="'   + cta + '"'
+            + ' data-color="' + color + '"'
+            + ' data-flyer="' + (ev.flyer_url || '') + '"'
+            + ' data-opacity="' + (ev.flyer_overlay_opacity != null ? ev.flyer_overlay_opacity : 0.5) + '"'
+            + ' data-status="' + status + '">'
+            + '<div class="card-front">'
+            + '<div class="card-banner">' + banner
+            + '<span class="card-price">' + price + '</span>'
+            + '<span class="card-avail ' + avCls + '">' + avTxt + '</span>'
+            + '</div>'
+            + '<div class="card-info">'
+            + '<p class="card-name">' + ev.band_name + ' &mdash; ' + (ev.cover_of || '') + '</p>'
+            + '<div class="card-meta">'
+            + '<span class="card-venue">' + venue + ' &middot; ' + ds + '</span>'
+            + '<span class="card-status ' + stCls + '">' + avTxt + '</span>'
+            + '</div></div></div></article>';
+        }).join('');
+        grid.innerHTML = html;
+        attachCardEvents();
+      }).catch(function(err) {
+        console.error('Error cargando eventos:', err);
+        document.getElementById('eventsGrid').innerHTML = '<div class="events-loading">Error cargando eventos.</div>';
+      });
+    }
+
+    // ── GALLERY ───────────────────────────────────────────────
+    var GAL_GRAD  = ['gp-1','gp-2','gp-3','gp-4','gp-5','gp-1','gp-2','gp-3'];
+    var GALLERY_GROUPS = [];
+    var HOVER_OK = window.matchMedia && window.matchMedia('(hover:hover)').matches;
+
+    // Drag-to-scroll
+    var track = document.getElementById('galleryTrack');
+    var isDrag = false, dragX = 0, dragScroll = 0, didDrag = false;
+    track.addEventListener('mousedown', function(e) { isDrag=true; didDrag=false; dragX=e.pageX; dragScroll=track.scrollLeft; track.classList.add('grabbing'); });
+    document.addEventListener('mousemove', function(e) { if (!isDrag) return; if (Math.abs(e.pageX-dragX)>4) didDrag=true; track.scrollLeft=dragScroll-(e.pageX-dragX); });
+    document.addEventListener('mouseup',   function()  { isDrag=false; track.classList.remove('grabbing'); });
+    track.addEventListener('click', function(e) { if (didDrag) { e.stopPropagation(); e.preventDefault(); didDrag=false; } }, true);
+
+    function scrollGallery(dir) {
+      var items = track.querySelectorAll('.gallery-tile');
+      if (!items.length) return;
+      track.scrollBy({ left: dir * (items[0].offsetWidth + 3) * 2, behavior:'smooth' });
+    }
+
+    // Dots
+    track.addEventListener('scroll', function() {
+      var dots = document.querySelectorAll('.gallery-dot');
+      if (!dots.length) return;
+      var pct = track.scrollLeft / (track.scrollWidth - track.clientWidth || 1);
+      var idx = Math.round(pct * (dots.length - 1));
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+    }, { passive: true });
+
+    function ytIdFromUrl(url) {
+      var m = url ? url.match(/(?:v=|youtu\.be\/)([^&?]+)/) : null;
+      return m ? m[1] : '';
+    }
+
+    // Una sola "celda" de medio (foto/video) para usar en la baldosa y en el modal
+    function mediaInner(item, gr, name) {
+      if (item.type === 'video') {
+        var ytId = ytIdFromUrl(item.url);
+        var thumb = item.thumb_url || (ytId ? 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg' : '');
+        return thumb
+          ? '<img src="' + thumb + '" alt="' + name + '" loading="lazy"/>'
+          : '<div class="gallery-placeholder ' + gr + '"><div class="gallery-placeholder-icon">&#127916;</div></div>';
+      }
+      return item.url
+        ? '<img src="' + item.url + '" alt="' + name + '" loading="lazy"/>'
+        : '<div class="gallery-placeholder ' + gr + '"><div class="gallery-placeholder-icon">&#128247;</div></div>';
+    }
+
+    function loadGallery() {
+      Promise.all([
+        sbGet('events', { select:'id,band_name,cover_of,event_date,flyer_url,venues(name)', gallery_visible:'eq.true', order:'event_date.desc', limit:'20' }),
+        sbGet('gallery_items', { select:'*', active:'eq.true', order:'sort_order.asc,created_at.asc' })
+      ]).then(function(results) {
+        var events = results[0], items = results[1];
+        var byEvent = {};
+        items.forEach(function(it) { (byEvent[it.event_id] = byEvent[it.event_id] || []).push(it); });
+
+        GALLERY_GROUPS = events
+          .filter(function(ev) { return ev.flyer_url || (byEvent[ev.id] && byEvent[ev.id].length); })
+          .map(function(ev, i) {
+            var venue = (ev.venues && ev.venues.name) || '';
+            return {
+              id: ev.id,
+              name: (ev.band_name || '').toUpperCase() + (ev.cover_of ? ' \u2014 ' + ev.cover_of : ''),
+              date: ev.event_date ? new Date(ev.event_date+'T12:00:00').toLocaleDateString('es-MX',{month:'long',year:'numeric'}) : '',
+              venue: venue,
+              cover: ev.flyer_url || null,
+              gr: GAL_GRAD[i % GAL_GRAD.length],
+              items: byEvent[ev.id] || []
+            };
+          });
+
+        if (!GALLERY_GROUPS.length) {
+          track.innerHTML = '<div style="padding:60px 24px;font-family:var(--fu);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#444">Fotos y videos proximamente...</div>';
+          return;
+        }
+
+        track.innerHTML = GALLERY_GROUPS.map(function(g, i) {
+          var coverInner = g.cover
+            ? '<img src="' + g.cover + '" alt="' + g.name + '" loading="lazy"/>'
+            : mediaInner(g.items[0], g.gr, g.name);
+          var extra = g.items.length;
+          var badge = extra ? '<span class="gallery-tile__badge">+' + extra + '</span>' : '';
+          return '<div class="gallery-tile" data-i="' + i + '" onclick="openEventGallery(' + i + ')">'
+            + '<div class="gallery-tile__media">' + coverInner + '</div>'
+            + badge
+            + '<div class="gallery-tile__info"><div class="gallery-tile__name">' + g.name + '</div>'
+            + '<div class="gallery-tile__date">' + g.date + (g.venue ? ' &middot; ' + g.venue : '') + '</div></div>'
+            + '</div>';
+        }).join('');
+
+        // Dots
+        var dotsEl = document.getElementById('galleryDots');
+        dotsEl.innerHTML = GALLERY_GROUPS.map(function(_,i) {
+          return '<div class="gallery-dot' + (i===0?' active':'') + '"></div>';
+        }).join('');
+
+        if (HOVER_OK) attachTileHoverCycle();
+      }).catch(function(err) {
+        console.error('Error galeria:', err);
+      });
+    }
+
+    // Hover en escritorio: cicla entre las fotos/videos del evento
+    function attachTileHoverCycle() {
+      track.querySelectorAll('.gallery-tile').forEach(function(tile) {
+        var g = GALLERY_GROUPS[+tile.dataset.i];
+        if (!g.items.length) return;
+        var media = tile.querySelector('.gallery-tile__media');
+        var coverHtml = media.innerHTML;
+        var idx = 0, iv = null;
+        tile.addEventListener('mouseenter', function() {
+          iv = setInterval(function() {
+            media.innerHTML = mediaInner(g.items[idx], g.gr, g.name)
+              + (g.items[idx].type === 'video' ? '<div class="gallery-tile__play">&#9654;</div>' : '');
+            idx = (idx + 1) % g.items.length;
+          }, 1000);
+        });
+        tile.addEventListener('mouseleave', function() {
+          clearInterval(iv);
+          idx = 0;
+          media.innerHTML = coverHtml;
+        });
+      });
+    }
+
+    // ── MODAL: galeria de evento (visor grande + carrusel de miniaturas) ────
+    var GMODAL_CELLS = [];
+    var GMODAL_GROUP = null;
+    var GMODAL_IDX = 0;
+
+    function openEventGallery(i) {
+      var g = GALLERY_GROUPS[i];
+      if (!g) return;
+      document.getElementById('gmodalTitle').textContent = g.name;
+      document.getElementById('gmodalDate').textContent  = g.date + (g.venue ? ' \u00b7 ' + g.venue : '');
+
+      GMODAL_GROUP = g;
+      GMODAL_CELLS = [];
+      if (g.cover) GMODAL_CELLS.push({ type:'photo', url:g.cover });
+      g.items.forEach(function(it) { GMODAL_CELLS.push(it); });
+      GMODAL_IDX = 0;
+
+      renderGmodalViewer();
+      renderGmodalFilmstrip();
+
+      document.getElementById('gmodalBackdrop').style.display = 'block';
+      document.getElementById('gmodal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeEventGallery() {
+      document.getElementById('gmodalBackdrop').style.display = 'none';
+      document.getElementById('gmodal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function renderGmodalViewer() {
+      var viewer = document.getElementById('gmodalViewer');
+      var item = GMODAL_CELLS[GMODAL_IDX];
+      var nav = viewer.querySelectorAll('.gmodal__viewer-nav');
+      // limpiar contenido previo (conservando los botones de navegacion)
+      Array.from(viewer.children).forEach(function(ch) {
+        if (!ch.classList.contains('gmodal__viewer-nav')) ch.remove();
+      });
+      var media;
+      if (item.type === 'video') {
+        var ytId = ytIdFromUrl(item.url);
+        media = document.createElement('iframe');
+        media.src = 'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0';
+        media.setAttribute('allow','autoplay;encrypted-media');
+        media.setAttribute('allowfullscreen','');
+      } else {
+        media = document.createElement('img');
+        media.src = item.url;
+        media.alt = GMODAL_GROUP.name;
+      }
+      viewer.insertBefore(media, nav[1]);
+      nav.forEach(function(n){ n.style.display = GMODAL_CELLS.length > 1 ? 'flex' : 'none'; });
+    }
+
+    function renderGmodalFilmstrip() {
+      var strip = document.getElementById('gmodalFilmstrip');
+      strip.innerHTML = GMODAL_CELLS.map(function(item, ci) {
+        var thumb = item.type === 'video'
+          ? (item.thumb_url || 'https://img.youtube.com/vi/' + ytIdFromUrl(item.url) + '/mqdefault.jpg')
+          : item.url;
+        var play = item.type === 'video' ? '<div class="gmodal__thumb-play">&#9654;</div>' : '';
+        return '<div class="gmodal__thumb' + (ci===GMODAL_IDX?' active':'') + '" onclick="gmodalGoTo(' + ci + ')">'
+          + '<img src="' + thumb + '" alt="" loading="lazy"/>' + play + '</div>';
+      }).join('');
+      var active = strip.querySelector('.active');
+      if (active) active.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+    }
+
+    function gmodalGoTo(idx) {
+      if (idx === GMODAL_IDX) return;
+      GMODAL_IDX = idx;
+      renderGmodalViewer();
+      renderGmodalFilmstrip();
+    }
+    function gmodalNav(dir) {
+      GMODAL_IDX = (GMODAL_IDX + dir + GMODAL_CELLS.length) % GMODAL_CELLS.length;
+      renderGmodalViewer();
+      renderGmodalFilmstrip();
+    }
+
+    // Swipe en el visor (movil)
+    (function() {
+      var viewer = document.getElementById('gmodalViewer');
+      var startX = 0, startY = 0;
+      viewer.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      }, { passive:true });
+      viewer.addEventListener('touchend', function(e) {
+        var dx = e.changedTouches[0].clientX - startX;
+        var dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) gmodalNav(dx < 0 ? 1 : -1);
+      }, { passive:true });
+    })();
+
+    // ── HERO: imagen o video de fondo (sin carrusel) ────────────
+    function loadHeroMedia() {
+      sbGet('site_settings', { select:'hero_media_type,hero_media_url', id:'eq.1' })
+        .then(function(rows) {
+          var s = rows && rows[0];
+          if (!s || !s.hero_media_url) return;
+          var bg = document.querySelector('.hero__bg');
+          if (!bg) return;
+          if (s.hero_media_type === 'video') {
+            bg.innerHTML = '<video src="'+s.hero_media_url+'" autoplay muted loop playsinline '
+              + 'style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>';
+          } else {
+            bg.innerHTML = '<img src="'+s.hero_media_url+'" alt="" '
+              + 'style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>';
+          }
+        })
+        .catch(function(err){ console.error('Error cargando hero:', err); });
+    }
+
+    // ── INIT ──────────────────────────────────────────────────
+    loadEvents();
+    loadGallery();
+    loadHeroMedia();
+  </script>
+</body>
+</html>

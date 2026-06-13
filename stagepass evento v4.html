@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Echoes — Pink Floyd Tribute · StagePass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --red:#CC0000; --red-h:#AA0000; --black:#0a0a0a; --card:#111;
+      --border:#222; --gray:#888; --light:#ccc; --white:#fff;
+      --green:#25D366; --green-h:#1ebe5a;
+      --seat-free:#22c55e; --seat-sel:#eab308; --seat-taken:#991b1b;
+      --fd:'Bebas Neue',sans-serif; --fu:'Barlow Condensed',sans-serif; --fb:'Barlow',sans-serif;
+      --nav:56px;
+    }
+    html { scroll-behavior:smooth; }
+    body { background:var(--black); font-family:var(--fb); color:var(--white); font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    a { text-decoration:none; color:inherit; }
+    button { cursor:pointer; font-family:inherit; border:none; }
+
+    /* ── NAV ── */
+    .nav { position:sticky; top:0; z-index:100; height:var(--nav); background:#000; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; transition:box-shadow .3s; }
+    .nav.scrolled { box-shadow:0 2px 20px rgba(0,0,0,.7); }
+    .nav__logo { font-family:var(--fd); font-size:22px; letter-spacing:3px; }
+    .nav__logo span { color:var(--red); }
+    .nav__back { display:flex; align-items:center; gap:7px; font-family:var(--fu); font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--gray); transition:color .2s; }
+    .nav__back:hover { color:var(--white); }
+    .nav__back svg { width:15px; height:15px; fill:currentColor; flex-shrink:0; }
+
+    /* ── EVENT HERO ── */
+    .event-hero { position:relative; height:clamp(220px,38vw,320px); overflow:hidden; display:flex; align-items:flex-end; }
+    .eh-bg { position:absolute; inset:0; background:linear-gradient(135deg,#1a0000,#3d0c0c,#0d0d0d); background-size:cover; background-position:center; }
+    .eh-overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.97) 0%,rgba(0,0,0,.5) 55%,rgba(0,0,0,.1) 100%); }
+    .eh-content { position:relative; z-index:1; padding:0 20px clamp(18px,3vw,28px); width:100%; }
+    .eh-breadcrumb { display:flex; align-items:center; gap:7px; font-family:var(--fu); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); margin-bottom:8px; flex-wrap:wrap; }
+    .eh-breadcrumb a { color:var(--gray); transition:color .2s; }
+    .eh-tag { display:inline-flex; align-items:center; gap:5px; background:var(--red); color:var(--white); font-family:var(--fu); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:3px 10px; border-radius:2px; margin-bottom:7px; }
+    .eh-tag::before { content:''; width:5px; height:5px; background:var(--white); border-radius:50%; animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)} }
+    .eh-title { font-family:var(--fd); font-size:clamp(28px,5.5vw,56px); letter-spacing:2px; line-height:.9; margin-bottom:10px; }
+    .eh-meta { display:flex; flex-wrap:wrap; gap:10px 14px; }
+    .eh-meta-item { display:flex; align-items:center; gap:5px; font-family:var(--fu); font-size:12px; font-weight:600; color:var(--light); }
+    .eh-meta-item svg { width:12px; height:12px; fill:var(--red); flex-shrink:0; }
+
+    /* ── PAGE LAYOUT ── */
+    .event-page { max-width:900px; margin:0 auto; padding:0 20px 120px; }
+
+    /* ── SECTIONS ── */
+    .ev-sec { padding:24px 0; border-bottom:1px solid var(--border); }
+    .ev-sec:last-child { border-bottom:none; }
+    .ev-label { font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--red); margin-bottom:10px; display:block; }
+    .ev-desc p { font-size:14px; color:var(--light); line-height:1.8; margin-bottom:8px; }
+    .ev-desc p:last-child { margin-bottom:0; }
+
+    /* ── DETAILS ── */
+    .ev-details { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+    .ev-detail { background:var(--card); padding:12px 14px; }
+    .ev-detail__l { font-family:var(--fu); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gray); margin-bottom:3px; }
+    .ev-detail__v { font-size:13px; color:var(--white); font-weight:500; }
+
+    /* ── RESTRICTIONS ── */
+    .ev-restrictions { display:flex; flex-direction:column; gap:8px; }
+    .ev-restriction { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--light); line-height:1.5; }
+    .ev-restriction__icon { font-size:13px; flex-shrink:0; margin-top:1px; }
+
+    /* ── MAP ── */
+    .ev-map-embed { border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+    .ev-map-embed iframe { width:100%; height:200px; border:none; display:block; filter:grayscale(20%) invert(88%) hue-rotate(180deg); }
+    .ev-map-label { background:var(--card); padding:10px 13px; display:flex; align-items:center; gap:7px; font-family:var(--fu); font-size:12px; font-weight:600; color:var(--light); border-top:1px solid var(--border); }
+    .ev-map-label svg { width:12px; height:12px; fill:var(--red); }
+
+    /* ════════════════════════════════════
+       SEAT SELECTOR
+    ════════════════════════════════════ */
+    .seat-selector { padding:24px 0 0; }
+
+    /* Floor tabs */
+    .floor-tabs { display:flex; border-bottom:2px solid var(--border); margin-bottom:0; }
+    .floor-tab { padding:8px 18px; font-family:var(--fu); font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); background:transparent; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; transition:color .2s,border-color .2s; -webkit-tap-highlight-color:transparent; }
+    .floor-tab.active { color:var(--white); border-bottom-color:var(--red); }
+
+    /* Legend */
+    .sales-closed-banner { display:flex; gap:14px; align-items:flex-start; background:rgba(204,0,0,.12); border:1px solid var(--red); border-radius:5px; padding:14px 16px; margin-bottom:14px; }
+    .scb-icon { font-size:26px; line-height:1; flex-shrink:0; }
+    .scb-title { font-family:var(--fu); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:14px; margin-bottom:4px; }
+    .scb-text { font-size:13px; color:var(--gray); line-height:1.5; }
+    .seat-selector.sales-closed .seat-legend,
+    .seat-selector.sales-closed .floor-tabs,
+    .seat-selector.sales-closed .mobile-table-tabs,
+    .seat-selector.sales-closed .selector-layout,
+    .seat-selector.sales-closed .mobile-map-wrap { display:none !important; }
+    .seat-legend { display:flex; gap:14px; flex-wrap:wrap; padding:10px 0 6px; }
+    .sl-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--gray); }
+    .sl-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .sl-free   { background:var(--seat-free); }
+    .sl-sel    { background:var(--seat-sel); }
+    .sl-taken  { background:var(--seat-taken); }
+    .sl-proc   { background:#ca8a04; }
+
+    /* Desktop: two-col layout */
+    .selector-layout { display:grid; grid-template-columns:175px 1fr; border:1px solid var(--border); border-top:none; border-radius:0 0 6px 6px; overflow:hidden; min-height:400px; }
+
+    /* Table list */
+    .table-list { background:#090909; border-right:1px solid var(--border); overflow-y:auto; max-height:480px; -webkit-overflow-scrolling:touch; }
+    .tl-header { padding:8px 12px; font-family:var(--fu); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gray); border-bottom:1px solid var(--border); background:#060606; position:sticky; top:0; z-index:1; }
+    .tl-item { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-bottom:1px solid #181818; cursor:pointer; transition:background .15s; gap:4px; -webkit-tap-highlight-color:transparent; }
+    .tl-item:hover,.tl-item.hovered { background:#161616; }
+    .tl-item.selected { background:#1a0000; border-left:3px solid var(--red); padding-left:9px; }
+    .tl-item.taken,.tl-item.in-process { opacity:.4; cursor:not-allowed; pointer-events:none; }
+    .tl-name { font-family:var(--fu); font-size:12px; font-weight:700; color:var(--white); }
+    .tl-avail { font-family:var(--fu); font-size:10px; font-weight:600; white-space:nowrap; }
+    .tl-avail.ok{color:#22c55e} .tl-avail.few{color:#fc0} .tl-avail.none{color:#633} .tl-avail.proc{color:#cc0}
+
+    /* Map wrap */
+    .map-wrap { background:#0d0d0d; position:relative; overflow:hidden; display:flex; align-items:stretch; }
+
+    /* Desktop SVG */
+    .map-zoom { width:100%; min-height:400px; transition:transform .5s cubic-bezier(.4,0,.2,1); transform-origin:center center; }
+    .venue-svg { width:100%; height:100%; min-height:400px; display:block; }
+
+    /* SVG table styles */
+    .svg-tbl { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .svg-tbl .tb { transition:fill .18s,stroke .18s; }
+    .svg-tbl.available .tb { fill:#1a3a1a; stroke:#22c55e; stroke-width:1.5; }
+    .svg-tbl.available:hover .tb,.svg-tbl.hovered .tb { fill:#1e501e; stroke:#4ade80; stroke-width:2; }
+    .svg-tbl.selected .tb { fill:#3a0000; stroke:var(--red); stroke-width:2.5; }
+    .svg-tbl.in-process .tb { fill:#2a2a00; stroke:#ca8a04; stroke-width:1.5; cursor:not-allowed; }
+    .svg-tbl.taken .tb { fill:#1c0606; stroke:#7f1d1d; stroke-width:1; opacity:.6; cursor:not-allowed; }
+    .svg-tbl text { fill:#fff; font-family:'Barlow Condensed',sans-serif; font-weight:700; pointer-events:none; font-size:11px; }
+    .svg-tbl.taken text,.svg-tbl.in-process text { fill:#666; }
+    .svg-tbl .tb-count { font-weight:600; fill:rgba(255,255,255,.55); }
+    .svg-tbl.available .tb-count { fill:#86efac; }
+    .svg-tbl.taken .tb-count,.svg-tbl.in-process .tb-count { fill:#555; }
+
+    /* SVG individual seats (shown on zoom) */
+    .svg-seat { cursor:pointer; transition:fill .15s,r .15s; -webkit-tap-highlight-color:transparent; }
+    .svg-seat.free     { fill:var(--seat-free); }
+    .svg-seat.selected { fill:var(--seat-sel); }
+    .svg-seat.taken    { fill:var(--seat-taken); cursor:not-allowed; }
+    .svg-seat.pending  { fill:#ca8a04; cursor:not-allowed; }
+    .svg-seat:hover:not(.taken):not(.pending) { fill:#86efac; r:9; }
+    .svg-seat.selected:hover { fill:#fcd34d; }
+
+    /* Zoom hint overlay */
+    .zoom-hint {
+      display:none; position:absolute; top:10px; left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.85); border:1px solid #333;
+      border-radius:20px; padding:5px 14px;
+      font-family:var(--fu); font-size:11px; font-weight:600;
+      letter-spacing:.5px; color:var(--gray); white-space:nowrap; z-index:5;
+      pointer-events:none;
+    }
+    .zoom-hint.visible { display:block; }
+
+    /* Zoom back button */
+    .zoom-back-btn {
+      display:none; position:absolute; top:10px; left:10px; z-index:5;
+      background:rgba(0,0,0,.8); border:1px solid #444; color:var(--gray);
+      font-family:var(--fu); font-size:11px; font-weight:700; letter-spacing:1px;
+      text-transform:uppercase; padding:6px 12px; border-radius:3px;
+      cursor:pointer; transition:color .2s,border-color .2s;
+    }
+    .zoom-back-btn.visible { display:block; }
+    .zoom-back-btn:hover { color:var(--white); border-color:#888; }
+
+    /* Mobile chip tabs */
+    .mobile-table-tabs { display:none; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; padding:8px 0; border-bottom:1px solid var(--border); }
+    .mobile-table-tab { display:inline-block; padding:5px 12px; font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); color:var(--gray); margin-right:5px; cursor:pointer; transition:background .15s,color .15s,border-color .15s; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+    .mobile-table-tab.available { border-color:#22c55e; color:#22c55e; }
+    .mobile-table-tab.available.selected { background:#22c55e; color:#000; }
+    .mobile-table-tab.in-process { border-color:#ca8a04; color:#ca8a04; opacity:.6; pointer-events:none; }
+    .mobile-table-tab.taken { border-color:#7f1d1d; color:#633; opacity:.4; pointer-events:none; }
+
+    /* Mobile vertical map */
+    .mobile-map-wrap { display:none; background:#0d0d0d; border:1px solid var(--border); border-top:none; border-radius:0 0 6px 6px; position:relative; overflow:hidden; max-width:100%; width:100%; }
+    .mobile-map-svg-wrap { position:relative; width:100%; max-width:100%; overflow:hidden; }
+    .mobile-venue-svg { width:100%; height:auto; display:block; max-width:100%; }
+    @media (orientation:portrait) {
+      .mobile-venue-svg { min-height:calc(100vw * 1.65); }
+    }
+    @media (orientation:landscape) and (max-width:932px) {
+      .mobile-venue-svg { transform:rotate(-90deg); transform-origin:center center; width:calc(100svh - var(--nav) - 140px); height:auto; margin:0 auto; display:block; }
+    }
+
+    /* Mobile zoom detail */
+    .mobile-zoom-detail { display:none; position:absolute; bottom:10px; left:10px; right:10px; background:rgba(0,0,0,.94); border:1px solid var(--red); border-radius:6px; padding:10px 12px; z-index:10; }
+    .mobile-zoom-detail.visible { display:block; }
+    .mzd-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+    .mzd-title { font-family:var(--fd); font-size:18px; letter-spacing:1px; }
+    .mzd-avail { font-family:var(--fu); font-size:11px; font-weight:700; color:#22c55e; }
+    .mzd-seats-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+    .mzd-seat { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--fu); font-size:9px; font-weight:700; cursor:pointer; transition:transform .15s,background .15s; border:2px solid transparent; -webkit-tap-highlight-color:transparent; }
+    .mzd-seat.free     { background:var(--seat-free); color:#000; }
+    .mzd-seat.selected { background:var(--seat-sel); color:#000; border-color:#fff; transform:scale(1.15); }
+    .mzd-seat.taken    { background:var(--seat-taken); color:#fff; cursor:not-allowed; opacity:.5; }
+    .mzd-seat.pending  { background:#ca8a04; color:#000; cursor:not-allowed; }
+    .mzd-back { background:none; border:none; color:var(--gray); font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; padding:0; transition:color .2s; }
+    .mzd-back:hover { color:var(--white); }
+
+    /* ════════════════════════════════════
+       FLOATING RESERVATION PANEL
+    ════════════════════════════════════ */
+    .float-panel {
+      position:fixed;
+      z-index:80;
+      transition:transform .4s cubic-bezier(.4,0,.2,1), opacity .3s;
+      /* Hidden state */
+      opacity:0;
+      pointer-events:none;
+    }
+    .float-panel.visible {
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    /* PORTRAIT: slides up from bottom */
+    @media (orientation:portrait), (min-width:769px) {
+      .float-panel {
+        bottom:0; left:0; right:0;
+        transform:translateY(100%);
+        background:#000;
+        border-top:2px solid var(--red);
+        border-radius:14px 14px 0 0;
+        padding:16px 20px max(16px, env(safe-area-inset-bottom));
+        box-shadow:0 -8px 40px rgba(0,0,0,.8);
+      }
+      .float-panel.visible { transform:translateY(0); }
+    }
+
+    /* LANDSCAPE MOBILE: compact bar at top-right */
+    @media (orientation:landscape) and (max-width:932px) {
+      .float-panel {
+        top:calc(var(--nav) + 8px);
+        right:12px;
+        left:auto;
+        bottom:auto;
+        width:220px;
+        transform:translateX(110%);
+        background:rgba(0,0,0,.95);
+        border:1px solid var(--red);
+        border-radius:8px;
+        padding:12px 14px;
+        box-shadow:0 4px 24px rgba(204,0,0,.25);
+      }
+      .float-panel.visible { transform:translateX(0); }
+      .fp-handle { display:none; }
+    }
+
+    /* Desktop: bottom fixed bar (same as portrait but wider) */
+    @media (min-width:769px) {
+      .float-panel {
+        left:50%; right:auto;
+        transform:translate(-50%, 100%);
+        width:min(640px, 92vw);
+        border-radius:14px 14px 0 0;
+      }
+      .float-panel.visible { transform:translate(-50%, 0); }
+    }
+
+    .fp-handle { width:36px; height:4px; background:#333; border-radius:2px; margin:0 auto 12px; }
+
+    /* Panel header */
+    .fp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:10px; flex-wrap:wrap; }
+    .fp-table { font-family:var(--fd); font-size:20px; letter-spacing:1px; color:var(--white); }
+    .fp-avail { font-family:var(--fu); font-size:11px; font-weight:700; color:#22c55e; }
+    .fp-close { background:none; border:none; color:var(--gray); font-size:18px; cursor:pointer; padding:0; line-height:1; transition:color .2s; flex-shrink:0; }
+    .fp-close:hover { color:var(--white); }
+
+    /* Seat grid in panel */
+    /* Resumen de asientos seleccionados (la seleccion ocurre en el mapa) */
+    .fp-selected-seats { font-family:var(--fu); font-size:12px; color:var(--gray); margin-bottom:10px; min-height:18px; }
+    .fp-selected-seats strong { color:var(--seat-sel); font-weight:700; }
+    .fp-selected-seats em { color:#555; font-style:normal; }
+
+    /* Timer */
+    .fp-timer { display:none; align-items:center; gap:6px; background:#1a1a00; border:1px solid #333300; border-radius:4px; padding:6px 10px; margin-bottom:10px; font-family:var(--fu); font-size:11px; font-weight:600; color:#cc0; }
+    .fp-timer.active { display:flex; }
+    .fp-timer-count { font-family:var(--fd); font-size:18px; color:#cc0; }
+
+    /* Extras row */
+    .fp-extras {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 0; border-top:1px solid #1a1a1a; margin-bottom:2px; gap:10px;
+      transition:opacity .25s;
+    }
+    .fp-extras.locked { opacity:.4; }
+    .fp-extras.locked .fp-extras-ctrl { pointer-events:none; }
+    .fp-extras-label { font-family:var(--fu); font-size:11px; font-weight:700; letter-spacing:.5px; color:var(--light); }
+    .fp-extras-label small { display:block; font-size:9px; color:var(--gray); font-weight:400; letter-spacing:.3px; margin-top:1px; }
+    .fp-extras-ctrl { display:flex; align-items:center; gap:0; border:1px solid var(--border); border-radius:4px; overflow:hidden; flex-shrink:0; }
+    .fp-extra-btn { width:34px; height:34px; background:#0a0a0a; color:var(--white); font-size:18px; display:flex; align-items:center; justify-content:center; transition:background .2s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
+    .fp-extra-btn:hover:not(:disabled) { background:var(--border); }
+    .fp-extra-btn:disabled { color:#333; cursor:not-allowed; }
+    .fp-extra-val { width:36px; text-align:center; font-family:var(--fd); font-size:20px; background:var(--card); border:none; border-left:1px solid var(--border); border-right:1px solid var(--border); color:var(--white); padding:4px 0; }
+    .fp-extras-max { font-size:10px; color:#555; font-family:var(--fu); flex-shrink:0; max-width:130px; text-align:right; line-height:1.4; }
+
+    /* Total + CTA row */
+    .fp-bottom { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .fp-total { flex:1; min-width:0; }
+    .fp-total-label { font-family:var(--fu); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gray); }
+    .fp-total-amount { font-family:var(--fd); font-size:28px; letter-spacing:1px; line-height:1; color:var(--white); }
+    .fp-total-amount em { color:var(--red); font-style:normal; }
+    .fp-total-sub { font-size:10px; color:var(--gray); }
+    .btn-reserve {
+      background:var(--red); color:var(--white); padding:13px 24px;
+      font-family:var(--fu); font-size:14px; font-weight:700; letter-spacing:2px;
+      text-transform:uppercase; border-radius:4px; transition:background .2s;
+      display:flex; align-items:center; gap:7px; white-space:nowrap;
+      flex-shrink:0; -webkit-tap-highlight-color:transparent;
+    }
+    .btn-reserve:hover { background:var(--red-h); }
+    .btn-reserve:disabled { background:#333; color:#666; cursor:not-allowed; }
+
+    /* TOAST (avisos breves) */
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translate(-50%, 20px);
+      max-width:min(420px,90vw); width:max-content;
+      background:#161616; border:1px solid var(--border); border-left:4px solid var(--red);
+      border-radius:6px; padding:13px 18px; font-family:var(--fb); font-size:13px;
+      color:var(--light); box-shadow:0 8px 30px rgba(0,0,0,.6);
+      opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+      z-index:250;
+    }
+    .toast.visible { opacity:1; transform:translate(-50%, 0); }
+    .toast.success { border-left-color:#22c55e; }
+    @media (max-width:768px) { .toast { bottom:78px; } }
+
+    /* SUCCESS MODAL */
+    .success-icon {
+      width:52px; height:52px; border-radius:50%;
+      background:rgba(34,197,94,.12); border:2px solid #22c55e;
+      display:flex; align-items:center; justify-content:center;
+      font-size:24px; color:#22c55e; margin:18px auto 4px;
+    }
+    .success-summary { background:#0a0a0a; border:1px solid var(--border); border-radius:5px; padding:12px 14px; margin:14px 0; display:flex; flex-direction:column; gap:6px; }
+    .success-summary__row { display:flex; justify-content:space-between; gap:10px; font-size:13px; }
+    .success-summary__label { color:var(--gray); }
+    .success-summary__value { color:var(--white); font-weight:600; text-align:right; }
+    .success-note { font-size:12px; color:var(--gray); line-height:1.7; text-align:center; }
+    .success-note strong { color:var(--light); }
+
+    /* FORM MODAL */
+    .form-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:200; animation:fadeIn .25s; }
+    @keyframes fadeIn { from{opacity:0}to{opacity:1} }
+    .form-modal { display:none; position:fixed; z-index:201; width:min(490px,94vw); max-height:92svh; overflow-y:auto; background:var(--card); border:1px solid var(--border); border-top:3px solid var(--red); border-radius:6px; animation:modalIn .3s cubic-bezier(.4,0,.2,1); -webkit-overflow-scrolling:touch; }
+    @keyframes modalIn { from{opacity:0;transform:translate(-50%,-44%)}to{opacity:1;transform:translate(-50%,-50%)} }
+    .form-modal { top:50%; left:50%; transform:translate(-50%,-50%); }
+    .fm-head { background:#000; padding:14px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1; }
+    .fm-title { font-family:var(--fd); font-size:20px; letter-spacing:1px; }
+    .fm-close { background:none; border:none; color:var(--gray); font-size:18px; cursor:pointer; transition:color .2s; padding:0; }
+    .fm-close:hover { color:var(--white); }
+    .fm-summary { background:#0a0a0a; padding:10px 20px; border-bottom:1px solid var(--border); font-family:var(--fu); font-size:12px; color:var(--gray); display:flex; gap:14px; flex-wrap:wrap; }
+    .fm-summary strong { color:var(--white); }
+    .fm-body { padding:18px 20px 0; }
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-family:var(--fu); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gray); margin-bottom:5px; }
+    .field input { width:100%; background:#0a0a0a; border:1px solid var(--border); border-radius:4px; padding:11px 12px; font-family:var(--fb); font-size:16px; color:var(--white); outline:none; transition:border-color .2s; -webkit-appearance:none; }
+    .field input:focus { border-color:var(--red); }
+    .field input::placeholder { color:#444; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+    /* Toggle de nombres por boleto */
+    .tn-toggle-wrap { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:2px; }
+    .tn-toggle-label { font-family:var(--fu); font-size:12px; font-weight:600; letter-spacing:.3px; color:var(--gray); transition:color .2s; cursor:pointer; -webkit-tap-highlight-color:transparent; text-align:center; }
+    .tn-toggle-label.active { color:var(--white); font-weight:700; }
+    .tn-switch { position:relative; display:inline-block; width:46px; height:25px; flex-shrink:0; }
+    .tn-switch input { opacity:0; width:0; height:0; position:absolute; }
+    .tn-switch-slider { position:absolute; cursor:pointer; inset:0; background:#2a2a2a; border:1px solid var(--border); border-radius:25px; transition:.25s; }
+    .tn-switch-slider::before { content:''; position:absolute; height:17px; width:17px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.25s cubic-bezier(.4,0,.2,1); }
+    .tn-switch input:checked + .tn-switch-slider { background:var(--red); border-color:var(--red); }
+    .tn-switch input:checked + .tn-switch-slider::before { transform:translateX(20px); }
+    .ticket-names-list { display:flex; flex-direction:column; gap:8px; margin-top:12px; max-height:220px; overflow-y:auto; padding-right:2px; -webkit-overflow-scrolling:touch; }
+    .tn-row { display:flex; align-items:center; gap:8px; }
+    .tn-row .tn-label { font-family:var(--fu); font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gray); width:84px; flex-shrink:0; }
+    .tn-row input { flex:1; background:#0a0a0a; border:1px solid var(--border); border-radius:4px; padding:9px 11px; font-family:var(--fb); font-size:14px; color:var(--white); outline:none; transition:border-color .2s; }
+    .tn-row input:focus { border-color:var(--red); }
+    .tn-row input::placeholder { color:#444; }
+    .fm-footer { padding:12px 20px 20px; display:flex; flex-direction:column; gap:8px; }
+    .btn-pay { width:100%; background:var(--red); color:var(--white); padding:14px; font-family:var(--fu); font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; border-radius:4px; display:flex; align-items:center; justify-content:center; gap:7px; transition:background .2s; cursor:pointer; border:none; }
+    .btn-pay:hover { background:var(--red-h); }
+    .btn-cancel { width:100%; background:transparent; border:1px solid var(--border); color:var(--gray); padding:11px; font-family:var(--fu); font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; border-radius:4px; cursor:pointer; transition:border-color .2s,color .2s; }
+    .btn-cancel:hover { border-color:#555; color:var(--white); }
+    .fm-note { font-size:10px; color:var(--gray); text-align:center; line-height:1.6; }
+
+    .scroll-top { position:fixed; bottom:90px; right:16px; z-index:79; width:36px; height:36px; background:var(--red); color:var(--white); border-radius:2px; font-size:16px; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .3s,transform .2s; }
+    .scroll-top.visible { opacity:1; pointer-events:auto; }
+    .scroll-top:hover { transform:translateY(-2px); }
+
+    /* Responsive */
+    @media (max-width:768px) {
+      html, body { overflow-x:hidden; max-width:100vw; }
+      .event-page { padding:0 0 140px; }
+      .ev-sec { padding:18px 16px; }
+      .ev-details { grid-template-columns:1fr; }
+      .selector-layout { display:none; }
+      .mobile-table-tabs { display:block; }
+      .mobile-map-wrap { display:block; }
+      .form-modal { top:auto; bottom:0; left:0; right:0; transform:none; width:100%; border-radius:12px 12px 0 0; animation:slideUp .3s cubic-bezier(.4,0,.2,1); }
+      @keyframes slideUp { from{transform:translateY(100%)}to{transform:translateY(0)} }
+      .field-row { grid-template-columns:1fr; }
+    }
+    @media (orientation:landscape) and (max-width:932px) {
+      .mobile-bottom-nav { display:none; }
+    }
+    @media (max-width:400px) {
+      .eh-title { font-size:26px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav">
+  <a href="stagepass_v1.html" class="nav__logo">STAGE<span>PASS</span></a>
+  <a href="stagepass_v1.html#cartelera" class="nav__back">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    Cartelera
+  </a>
+</nav>
+
+<!-- EVENT HERO -->
+<div class="event-hero">
+  <div class="eh-bg"></div>
+  <div class="eh-overlay"></div>
+  <div class="eh-content">
+    <div class="eh-breadcrumb"><a href="stagepass_v1.html">Inicio</a><span>/</span><a href="stagepass_v1.html#cartelera">Cartelera</a><span>/</span>Echoes</div>
+    <div class="eh-tag">En Vivo</div>
+    <h1 class="eh-title">ECHOES<br>Pink Floyd Tribute</h1>
+    <div class="eh-meta">
+      <div class="eh-meta-item"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 16H5V8h14v11z"/></svg>Sab 14 Jun 2025</div>
+      <div class="eh-meta-item"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>21:00 hrs</div>
+      <div class="eh-meta-item"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>McCarthys Bar</div>
+      <div class="eh-meta-item"><svg viewBox="0 0 24 24"><path d="M20 12c0-1.1.9-2 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2z"/></svg>$250 por persona</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="event-page">
+
+  <!-- Description -->
+  <div class="ev-sec ev-desc" style="padding-top:20px">
+    <span class="ev-label">Sobre el Evento</span>
+    <p>Una noche dedicada a <strong>Pink Floyd</strong> interpretada con total fidelidad por <strong>Echoes</strong>, una de las bandas tributo mas aclamadas de Veracruz. Produccion de luces atmosferica y sonido profesional.</p>
+  </div>
+
+  <!-- Details -->
+  <div class="ev-sec">
+    <span class="ev-label">Detalles</span>
+    <div class="ev-details">
+      <div class="ev-detail"><div class="ev-detail__l">Fecha</div><div class="ev-detail__v">Sabado 14 Jun 2025</div></div>
+      <div class="ev-detail"><div class="ev-detail__l">Puertas abren</div><div class="ev-detail__v">20:00 hrs</div></div>
+      <div class="ev-detail"><div class="ev-detail__l">Inicio del show</div><div class="ev-detail__v">21:00 hrs</div></div>
+      <div class="ev-detail"><div class="ev-detail__l">Duracion aprox.</div><div class="ev-detail__v">2 hrs 30 min</div></div>
+      <div class="ev-detail"><div class="ev-detail__l">Precio preventa</div><div class="ev-detail__v">$250 MXN</div></div>
+      <div class="ev-detail"><div class="ev-detail__l">Precio taquilla</div><div class="ev-detail__v">$300 MXN</div></div>
+    </div>
+  </div>
+
+  <!-- Restrictions -->
+  <div class="ev-sec">
+    <span class="ev-label">Restricciones</span>
+    <div class="ev-restrictions">
+      <div class="ev-restriction"><span class="ev-restriction__icon">&#128286;</span>Mayores de 18 anos. Identificacion oficial.</div>
+      <div class="ev-restriction"><span class="ev-restriction__icon">&#127903;</span>Boleto personal e intransferible. QR de un solo uso.</div>
+      <div class="ev-restriction"><span class="ev-restriction__icon">&#128683;</span>Area de no fumadores. Zona designada afuera.</div>
+      <div class="ev-restriction"><span class="ev-restriction__icon">&#8617;&#65039;</span>Devoluciones hasta 48 hrs antes. WhatsApp.</div>
+      <div class="ev-restriction"><span class="ev-restriction__icon">&#128663;</span>Estacionamiento en la calle.</div>
+    </div>
+  </div>
+
+  <!-- ══ SEAT SELECTOR ══ -->
+  <div class="ev-sec seat-selector" id="seatSelector">
+    <span class="ev-label">Selecciona tu Mesa y Asientos</span>
+
+    <div class="sales-closed-banner" id="salesClosedBanner" style="display:none">
+      <div class="scb-icon">&#127915;</div>
+      <div>
+        <div class="scb-title">Venta en linea cerrada para este evento</div>
+        <div class="scb-text">Las compras en linea ya cerraron. Puedes adquirir tu boleto directamente en taquilla el dia del evento.</div>
+      </div>
+    </div>
+
+    <div class="seat-legend">
+      <div class="sl-item"><div class="sl-dot sl-free"></div>Libre</div>
+      <div class="sl-item"><div class="sl-dot sl-sel"></div>Seleccionado</div>
+      <div class="sl-item"><div class="sl-dot sl-taken"></div>Ocupado</div>
+      <div class="sl-item"><div class="sl-dot sl-proc"></div>En proceso</div>
+    </div>
+
+    <!-- Floor tabs -->
+    <div class="floor-tabs"></div>
+
+    <!-- Mobile chips -->
+    <div class="mobile-table-tabs" id="mobileTableTabs"></div>
+
+    <!-- DESKTOP layout: list + SVG map -->
+    <div class="selector-layout">
+      <div class="table-list" id="tableList">
+        <div class="tl-header" id="tlHeader">Mesas</div>
+      </div>
+      <div class="map-wrap">
+        <div class="map-zoom" id="mapZoom">
+          <svg class="venue-svg" id="venueSvg" viewBox="0 0 960 680" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="zoom-hint" id="zoomHint">Toca un asiento para seleccionarlo</div>
+        <button class="zoom-back-btn" id="zoomBackBtn" onclick="zoomOut()">&#8592; Ver mapa completo</button>
+      </div>
+    </div>
+
+    <!-- MOBILE vertical map -->
+    <div class="mobile-map-wrap" id="mobileMapWrap">
+      <div class="mobile-map-svg-wrap" id="mobileSvgWrap">
+        <svg class="mobile-venue-svg" id="mobileVenueSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="mobile-zoom-detail" id="mobileZoomDetail">
+        <div class="mzd-row">
+          <div class="mzd-title" id="mzdTitle"></div>
+          <div class="mzd-avail" id="mzdAvail"></div>
+        </div>
+        <div class="mzd-seats-wrap" id="mzdSeats"></div>
+        <button class="mzd-back" onclick="mobileZoomOut()">&#8592; Ver planta completa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map location -->
+  <div class="ev-sec">
+    <span class="ev-label">Ubicacion</span>
+    <div class="ev-map-embed">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3772.123!2d-96.1342!3d19.1788!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDEwJzQzLjciTiA5NsKwMDgnMDMuMSJX!5e0!3m2!1ses!2smx!4v1" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="McCarthys Bar"></iframe>
+      <div class="ev-map-label"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>McCarthys Bar - Veracruz, Mexico</div>
+    </div>
+  </div>
+
+</div><!-- /event-page -->
+
+<!-- ══ FLOATING RESERVATION PANEL ══ -->
+<div class="float-panel" id="floatPanel">
+  <div class="fp-handle"></div>
+  <div class="fp-header">
+    <div>
+      <div class="fp-table" id="fpTable">Mesa C4</div>
+      <div class="fp-avail" id="fpAvail"></div>
+    </div>
+    <button class="fp-close" onclick="clearSelection()" aria-label="Cerrar">&#10005;</button>
+  </div>
+  <div class="fp-selected-seats" id="fpSelectedSeats"></div>
+  <div class="fp-timer" id="fpTimer">
+    <span>&#9203;</span><span>Tu seleccion expira en</span>
+    <span class="fp-timer-count" id="fpTimerCount">10:00</span>
+  </div>
+
+  <!-- Lugares Adicionales -->
+  <div class="fp-extras" id="fpExtras" style="display:none">
+    <div class="fp-extras-label">
+      Lugares Adicionales
+      <small>Sillas extra para tu mesa &mdash; sujeto a disponibilidad</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="fp-extras-max" id="fpExtrasMax"></span>
+      <div class="fp-extras-ctrl">
+        <button class="fp-extra-btn" id="fpExtraMinus" onclick="changeExtra(-1)" disabled>&#8722;</button>
+        <div class="fp-extra-val" id="fpExtraVal">0</div>
+        <button class="fp-extra-btn" id="fpExtraPlus"  onclick="changeExtra(1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fp-bottom">
+    <div class="fp-total">
+      <div class="fp-total-label">Total</div>
+      <div class="fp-total-amount" id="fpTotal"><em>$</em>&#8212;</div>
+      <div class="fp-total-sub" id="fpTotalSub">Elige tus asientos</div>
+    </div>
+    <button class="btn-reserve" id="reserveBtn" disabled onclick="openForm()">
+      &#127903; Reservar y Pagar
+    </button>
+  </div>
+</div>
+
+<!-- FORM MODAL -->
+<div class="form-backdrop" id="formBackdrop"></div>
+<div class="form-modal" id="formModal">
+  <div class="fm-head"><h2 class="fm-title">DATOS DE RESERVA</h2><button class="fm-close" onclick="closeForm()">&#10005;</button></div>
+  <div class="fm-summary" id="fmSummary"></div>
+  <div class="fm-body">
+    <div class="field-row">
+      <div class="field"><label for="fn">Nombre</label><input type="text" id="fn" placeholder="Juan" autocomplete="given-name"/></div>
+      <div class="field"><label for="ln">Apellido</label><input type="text" id="ln" placeholder="Garcia" autocomplete="family-name"/></div>
+    </div>
+    <div class="field"><label for="ph">WhatsApp</label><input type="tel" id="ph" placeholder="+52 220 000 0000" autocomplete="tel"/></div>
+    <div class="field"><label for="em">Email</label><input type="email" id="em" placeholder="tu@correo.com" autocomplete="email"/></div>
+
+    <!-- Personalizacion de boletos (solo si hay mas de 1) -->
+    <div class="field" id="ticketNamesField" style="display:none">
+      <label>Nombres en los boletos</label>
+      <div class="tn-toggle-wrap">
+        <span class="tn-toggle-label active" id="tnLabelSame" onclick="setTicketNameMode(false)">Mi nombre<br>para todos</span>
+        <label class="tn-switch">
+          <input type="checkbox" id="tnModeSwitch" onchange="onTicketNameModeChange()"/>
+          <span class="tn-switch-slider"></span>
+        </label>
+        <span class="tn-toggle-label" id="tnLabelCustom" onclick="setTicketNameMode(true)">Personalizar<br>cada boleto</span>
+      </div>
+      <div class="ticket-names-list" id="ticketNamesList" style="display:none"></div>
+    </div>
+  </div>
+  <div class="fm-footer">
+    <button class="btn-pay" onclick="submitReservation()">&#128179; Continuar al Pago</button>
+    <button class="btn-cancel" onclick="closeForm()">Cancelar</button>
+    <p class="fm-note">Tu reserva se confirma unicamente al completar el pago.</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL: RESERVACION EXITOSA -->
+<div class="form-backdrop" id="successBackdrop"></div>
+<div class="form-modal" id="successModal" style="width:min(420px,92vw)">
+  <div class="fm-head"><h2 class="fm-title">LISTO</h2><button class="fm-close" onclick="closeSuccessModal()">&#10005;</button></div>
+  <div class="fm-body" style="padding-bottom:4px">
+    <div class="success-icon">&#10003;</div>
+    <p style="text-align:center;font-family:var(--fu);font-size:15px;font-weight:700;letter-spacing:.5px;margin-bottom:4px">Tu lugar quedo registrado</p>
+    <div class="success-summary" id="successSummary"></div>
+    <p class="success-note" id="successNote"></p>
+  </div>
+  <div class="fm-footer">
+    <button class="btn-pay" onclick="closeSuccessModal()">Entendido</button>
+  </div>
+</div>
+
+<!-- DIALOGO: CAMBIAR DE MESA -->
+<div class="form-backdrop" id="switchConfirmBackdrop" style="z-index:210"></div>
+<div class="form-modal" id="switchConfirmModal" style="z-index:211;width:min(380px,90vw);max-height:none">
+  <div class="fm-head"><h2 class="fm-title" style="font-size:18px">CAMBIAR DE MESA?</h2></div>
+  <div class="fm-body" style="padding-bottom:4px">
+    <p style="font-size:13px;color:var(--light);line-height:1.7" id="switchConfirmText"></p>
+  </div>
+  <div class="fm-footer">
+    <button class="btn-pay" onclick="confirmTableSwitch()">Si, cambiar de mesa</button>
+    <button class="btn-cancel" onclick="hideTableSwitchConfirm()">Cancelar</button>
+  </div>
+</div>
+
+<!-- DIALOGO: TIEMPO AGOTADO -->
+<div class="form-backdrop" id="holdExpiredBackdrop" style="z-index:210"></div>
+<div class="form-modal" id="holdExpiredModal" style="z-index:211;width:min(380px,90vw);max-height:none">
+  <div class="fm-head"><h2 class="fm-title" style="font-size:18px">SIGUES AHI?</h2></div>
+  <div class="fm-body" style="padding-bottom:4px">
+    <p style="font-size:13px;color:var(--light);line-height:1.7" id="holdExpiredMsg"></p>
+  </div>
+  <div class="fm-footer">
+    <button class="btn-pay" id="holdContinueBtn" onclick="holdExpiredContinue()">&#9203; Continuar (+<span id="holdExtMinutes2">5</span> min)</button>
+    <button class="btn-cancel" onclick="holdExpiredCancel()">Cancelar y liberar mesa</button>
+  </div>
+</div>
+
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script>
+  // ══ SUPABASE ════════════════════════════════════════════════
+  const SB_URL = 'https://hrvmubcmefdpvfpzqibv.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhydm11YmNtZWZkcHZmcHpxaWJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTcwODcsImV4cCI6MjA5NjYzMzA4N30.u0xB37zHHHSmiXQeBIOygoUbCpqkD7MLl2K9HB44lHo';
+  const SB_HDR = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+  function sbGet(table, params) {
+    var url = SB_URL + '/rest/v1/' + table + '?';
+    var parts = [];
+    for (var k in params) parts.push(k + '=' + encodeURIComponent(params[k]));
+    url += parts.join('&');
+    return fetch(url, { headers: SB_HDR }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t){ throw new Error(t); });
+      return r.json();
+    });
+  }
+
+  function sbPost(table, body) {
+    return fetch(SB_URL + '/rest/v1/' + table, {
+      method: 'POST',
+      headers: Object.assign({}, SB_HDR, {
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      }),
+      body: JSON.stringify(body)
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t){ throw new Error(t); });
+      return true; // 201 sin contenido (return=minimal)
+    });
+  }
+
+  function sbPatch(table, filterQs, body) {
+    return fetch(SB_URL + '/rest/v1/' + table + '?' + filterQs, {
+      method: 'PATCH',
+      headers: Object.assign({}, SB_HDR, {
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      }),
+      body: JSON.stringify(body)
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t){ throw new Error(t); });
+      return true;
+    });
+  }
+
+  function sbDelete(table, filterQs) {
+    return fetch(SB_URL + '/rest/v1/' + table + '?' + filterQs, {
+      method: 'DELETE',
+      headers: Object.assign({}, SB_HDR, { 'Prefer': 'return=minimal' })
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t){ throw new Error(t); });
+      return true;
+    });
+  }
+
+  // ── Token de sesion (identifica este navegador, persiste entre pestanas) ──
+  function getSessionToken() {
+    var KEY = 'sp_session_token';
+    var tok = localStorage.getItem(KEY);
+    if (!tok) {
+      tok = (crypto.randomUUID ? crypto.randomUUID() : ('tok-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+      localStorage.setItem(KEY, tok);
+    }
+    return tok;
+  }
+  const SESSION_TOKEN = getSessionToken();
+  function uuid() {
+    return crypto.randomUUID ? crypto.randomUUID() : ('id-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  }
+
+  // ══ CONFIG (poblado dinamicamente desde Supabase) ═════════════
+  let EVENT  = { id:null, name:'Cargando...', venue:'McCarthys Bar', price:250, price_cents:25000 };
+  let FLOORS = {};
+  let FLOOR_ORDER = []; // ['baja','alta',...]
+
+  // Fondo del mapa: renderiza dinamicamente los elementos del editor de mapas
+  // (muros, barandales, escaleras, barra, escenario) para que coincida con el editor.
+  function renderBg(vb, elements) {
+    var parts = (vb||'0 0 960 680').split(' ').map(Number);
+    var w = parts[2]||960, h = parts[3]||680;
+    var html = '<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="#111"/>';
+    (elements||[]).forEach(function(el) {
+      var fill, stroke, extra = '';
+      switch(el.kind) {
+        case 'wall':    fill='#2a2a2a'; stroke='#2a2a2a'; break;
+        case 'railing': fill='none';    stroke='#555';    extra=' stroke-dasharray="4 3"'; break;
+        case 'stairs':  fill='#1a1a1a'; stroke='#444'; break;
+        case 'bar':     fill='#1a1800'; stroke='#332e00'; break;
+        case 'stage':   fill='#2a1414'; stroke='#3d1a1a'; break;
+        default:        fill='#1a1a1a'; stroke='#333';
+      }
+      var rot = el.rotation || 0;
+      var cx = el.pos_x + el.width/2, cy = el.pos_y + el.height/2;
+      var groupAttrs = rot ? ' transform="rotate('+rot+' '+cx+' '+cy+')"' : '';
+      html += '<g'+groupAttrs+'>';
+      html += '<rect x="'+el.pos_x+'" y="'+el.pos_y+'" width="'+el.width+'" height="'+el.height+'" rx="3" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5"'+extra+'/>';
+      if (el.kind === 'stairs') {
+        var steps = Math.max(2, Math.round(el.height/16));
+        for (var i=1; i<steps; i++) {
+          var y = el.pos_y + (el.height/steps)*i;
+          html += '<line x1="'+el.pos_x+'" y1="'+y+'" x2="'+(el.pos_x+el.width)+'" y2="'+y+'" stroke="#444" stroke-width="1"/>';
+        }
+      }
+      if (el.label) {
+        var fs = Math.min(el.width, el.height) > 60 ? 22 : 13;
+        var col = (el.kind==='stage') ? '#aa3333' : '#777';
+        html += '<text x="'+(el.pos_x+el.width/2)+'" y="'+(el.pos_y+el.height/2)+'" text-anchor="middle" dominant-baseline="middle" font-family="Bebas Neue,sans-serif" font-size="'+fs+'" fill="'+col+'" letter-spacing="3">'+el.label+'</text>';
+      }
+      html += '</g>';
+    });
+    return html;
+  }
+
+  // ── Carga todos los datos del evento desde Supabase ───────────
+  async function loadEventData() {
+    var params = new URLSearchParams(window.location.search);
+    var eventId = params.get('event');
+
+    var ev;
+    if (eventId) {
+      var rows = await sbGet('events', {
+        select: '*,venues(name,address,city,maps_url,block_minutes,extension_minutes)',
+        id: 'eq.' + eventId
+      });
+      ev = rows[0];
+    }
+    if (!ev) {
+      var rows2 = await sbGet('events', {
+        select: '*,venues(name,address,city,maps_url,block_minutes,extension_minutes)',
+        status: 'in.(published,sold_out)',
+        order: 'event_date.asc',
+        limit: '1'
+      });
+      ev = rows2[0];
+    }
+    if (!ev) { console.error('No hay eventos disponibles.'); return; }
+
+    var priceCents = (ev.presale_active && ev.price_presale) ? ev.price_presale : (ev.price_door || 0);
+    EVENT = {
+      id: ev.id,
+      name: ev.band_name + (ev.cover_of ? ' - ' + ev.cover_of : ''),
+      band: ev.band_name,
+      cover: ev.cover_of || '',
+      venue: (ev.venues && ev.venues.name) || 'McCarthys Bar',
+      address: (ev.venues && ev.venues.address) || '',
+      description: ev.description || '',
+      event_date: ev.event_date,
+      doors_open: ev.doors_open,
+      show_start: ev.show_start,
+      duration_min: ev.duration_min,
+      price_presale: ev.price_presale,
+      price_door: ev.price_door,
+      presale_active: ev.presale_active,
+      restrictions: ev.restrictions || [],
+      banner_url: ev.banner_url || null,
+      flyer_overlay_opacity: (ev.flyer_overlay_opacity != null) ? ev.flyer_overlay_opacity : 0.5,
+      price: Math.round(priceCents/100),
+      price_cents: priceCents,
+      block_minutes: (ev.venues && ev.venues.block_minutes) || 10,
+      extension_minutes: (ev.venues && ev.venues.extension_minutes) || 5
+    };
+
+    // Cierre de venta en linea: por defecto, medianoche del dia del evento
+    // (hora local del navegador como aproximacion; la base de datos aplica
+    // la regla real en hora de Veracruz independientemente de esto).
+    var cutoff = ev.online_sales_cutoff
+      ? new Date(ev.online_sales_cutoff)
+      : new Date(ev.event_date + 'T00:00:00');
+    EVENT.sales_closed = (new Date() >= cutoff);
+
+    updateEventDom();
+
+    var evLayouts = await sbGet('event_layouts', {
+      select: '*,venue_layouts(id,name,layout_data)',
+      event_id: 'eq.' + ev.id,
+      order: 'sort_order.asc'
+    });
+
+    var nowIso = new Date().toISOString();
+    var reservations = await sbGet('public_availability', {
+      select: 'id,table_id,seats,extra_seats,seat_indices,payment_status,expires_at,session_token',
+      event_id: 'eq.' + ev.id
+    });
+    reservations = reservations.filter(function(r){
+      return r.payment_status === 'paid' || !r.expires_at || r.expires_at > nowIso;
+    });
+
+    FLOORS = {};
+    FLOOR_ORDER = [];
+    var floorKeys = ['baja','alta','tercera','cuarta'];
+
+    for (var i=0; i<evLayouts.length; i++) {
+      var elay = evLayouts[i];
+      var vlay = elay.venue_layouts;
+      if (!vlay) continue;
+      var key = floorKeys[i] || ('floor'+i);
+      FLOOR_ORDER.push(key);
+      var vb = (vlay.layout_data && vlay.layout_data.viewBox) || '0 0 960 680';
+      var floorLabel = elay.floor_label || vlay.name || 'Planta';
+
+      var tables = await sbGet('tables', {
+        select: '*',
+        layout_id: 'eq.' + vlay.id,
+        order: 'sort_order.asc'
+      });
+
+      var elements = await sbGet('layout_elements', {
+        select: '*',
+        layout_id: 'eq.' + vlay.id,
+        order: 'sort_order.asc'
+      });
+
+      var mappedTables = tables.map(function(t) {
+        var cap = t.capacity;
+        var seatsArr = new Array(cap).fill('free');
+        var usedExtra = 0;
+        var myReservation = null;
+
+        reservations.filter(function(r){ return r.table_id === t.id; }).forEach(function(r) {
+          // Mi propio hold EN EDICION (draft) no cuenta como ocupado para mi mismo.
+          // Una vez finalizado (pending), si cuenta como ocupado (para mi y para otros).
+          if (r.session_token === SESSION_TOKEN && r.payment_status === 'draft') {
+            myReservation = r;
+            return;
+          }
+          var idxs = r.seat_indices || [];
+          idxs.forEach(function(idx) {
+            if (idx >= 0 && idx < cap) {
+              seatsArr[idx] = r.payment_status === 'paid' ? 'taken' : 'pending';
+            }
+          });
+          usedExtra += (r.extra_seats || 0);
+        });
+
+        var freeCount = seatsArr.filter(function(s){ return s==='free'; }).length;
+        var availExtra = Math.max(0, (t.extra_seats||0) - usedExtra);
+        // "Agotada" se basa solo en los lugares estandar visibles al cliente.
+        // Los Lugares Adicionales ya no mantienen la mesa "disponible" -
+        // esos se gestionan por administracion si el cliente llama.
+        var status = (freeCount === 0 && !myReservation) ? 'taken' : 'available';
+
+        return {
+          id: t.id,
+          label: t.label,
+          cap: cap,
+          extraSeats: availExtra,
+          seats: seatsArr,
+          status: status,
+          x: Number(t.pos_x), y: Number(t.pos_y),
+          w: Number(t.width),  h: Number(t.height),
+          shape: t.shape || 'rect',
+          myReservation: myReservation
+        };
+      });
+
+      FLOORS[key] = {
+        label: floorLabel,
+        vb: vb,
+        bg: (function(_vb,_els){ return function(){ return renderBg(_vb,_els); }; })(vb, elements),
+        tables: mappedTables
+      };
+    }
+
+    if (FLOOR_ORDER.length === 0) {
+      FLOOR_ORDER = ['baja'];
+      FLOORS.baja = { label:'Planta Baja', vb:'0 0 960 680', bg:function(){ return renderBg('0 0 960 680',[]); }, tables:[] };
+    }
+
+    setupFloorTabs();
+    activeFloor = FLOOR_ORDER[0];
+  }
+
+  // ── Actualiza el DOM con los datos reales del evento ──────────
+  function updateEventDom() {
+    document.title = EVENT.name + ' \u00B7 StagePass';
+
+    var seatSel = document.getElementById('seatSelector');
+    var banner  = document.getElementById('salesClosedBanner');
+    if (seatSel && banner) {
+      seatSel.classList.toggle('sales-closed', !!EVENT.sales_closed);
+      banner.style.display = EVENT.sales_closed ? '' : 'none';
+    }
+
+    var ehBg = document.querySelector('.eh-bg');
+    if (ehBg) {
+      if (EVENT.banner_url) {
+        var op = (EVENT.flyer_overlay_opacity != null) ? EVENT.flyer_overlay_opacity : 0.5;
+        ehBg.style.backgroundImage = 'linear-gradient(rgba(10,10,10,'+op+'),rgba(10,10,10,'+op+')), url("'+EVENT.banner_url+'")';
+      } else {
+        ehBg.style.backgroundImage = '';
+      }
+    }
+
+    var extMin = EVENT.extension_minutes || 5;
+    var em2 = document.getElementById('holdExtMinutes2');
+    if (em2) em2.textContent = extMin;
+
+    var bandEl = document.querySelector('.eh-title');
+    if (bandEl) bandEl.innerHTML = EVENT.band.toUpperCase() + (EVENT.cover ? '<br>'+EVENT.cover : '');
+
+    var crumb = document.querySelector('.eh-breadcrumb');
+    if (crumb) {
+      crumb.innerHTML = '<a href="stagepass_v1.html">Inicio</a><span>/</span><a href="stagepass_v1.html#cartelera">Cartelera</a><span>/</span>' + EVENT.band;
+    }
+
+    var metaItems = document.querySelectorAll('.eh-meta-item');
+    if (metaItems[0]) {
+      var d = new Date(EVENT.event_date + 'T12:00:00');
+      var dateStr = d.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+      metaItems[0].lastChild.textContent = ' ' + dateStr;
+    }
+    if (metaItems[1] && EVENT.show_start) {
+      metaItems[1].lastChild.textContent = ' ' + EVENT.show_start.substring(0,5) + ' hrs';
+    }
+    if (metaItems[2]) {
+      metaItems[2].lastChild.textContent = ' ' + EVENT.venue;
+    }
+    if (metaItems[3]) {
+      metaItems[3].lastChild.textContent = ' $' + EVENT.price.toLocaleString('es-MX') + ' por persona';
+    }
+
+    var descP = document.querySelector('.ev-desc p');
+    if (descP && EVENT.description) descP.textContent = EVENT.description;
+
+    var details = document.querySelectorAll('.ev-detail__v');
+    if (details.length >= 6) {
+      var d2 = new Date(EVENT.event_date + 'T12:00:00');
+      details[0].textContent = d2.toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+      details[1].textContent = (EVENT.doors_open||'').substring(0,5) + ' hrs';
+      details[2].textContent = (EVENT.show_start||'').substring(0,5) + ' hrs';
+      var hrs = Math.floor((EVENT.duration_min||0)/60), mins=(EVENT.duration_min||0)%60;
+      details[3].textContent = hrs + ' hrs' + (mins ? ' ' + mins + ' min' : '');
+      details[4].textContent = EVENT.price_presale ? ('$' + (EVENT.price_presale/100).toLocaleString('es-MX') + ' MXN') : 'N/D';
+      details[5].textContent = EVENT.price_door ? ('$' + (EVENT.price_door/100).toLocaleString('es-MX') + ' MXN') : 'N/D';
+    }
+
+    if (Array.isArray(EVENT.restrictions) && EVENT.restrictions.length) {
+      var wrap = document.querySelector('.ev-restrictions');
+      if (wrap) {
+        wrap.innerHTML = EVENT.restrictions.map(function(r) {
+          return '<div class="ev-restriction"><span class="ev-restriction__icon">&#8226;</span>' + r + '</div>';
+        }).join('');
+      }
+    }
+
+    var mapLabel = document.querySelector('.ev-map-label');
+    if (mapLabel && EVENT.venue) {
+      mapLabel.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>' + EVENT.venue + (EVENT.address ? ' - ' + EVENT.address : '');
+    }
+  }
+
+  // ── Genera tabs de planta dinamicamente ────────────────────────
+  function setupFloorTabs() {
+    var tabsWrap = document.querySelector('.floor-tabs');
+    if (!tabsWrap) return;
+    tabsWrap.innerHTML = FLOOR_ORDER.map(function(key, i) {
+      var f = FLOORS[key];
+      return '<button class="floor-tab' + (i===0?' active':'') + '" id="tab_' + key + '" onclick="switchFloor(\'' + key + '\')">' + f.label + '</button>';
+    }).join('');
+  }
+
+  // ══ STATE ════════════════════════════════════════════════════
+  let activeFloor   = 'baja';
+  let hovId         = null;
+  let selTableId    = null;    // currently zoomed table
+  let selectedSeats = [];      // array of seat indices selected
+  let extraQty      = 0;       // additional seats (Lugares Adicionales)
+  let timerIv       = null;
+  let isZoomed      = false;
+  let mobileZoomed  = false;
+  let currentReservationId = null; // id del hold 'pending' propio en curso
+  let reservationFinalized = false; // true tras pasar por el formulario
+  let extensionCount = 0; // veces que se ha usado "Continuar (+N min)", max 2
+  let syncHoldTimer = null;
+
+  // ── Nav + scroll ────────────────────────────────────────────
+  const navEl = document.getElementById('mainNav');
+  const stBtn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', () => {
+    navEl.classList.toggle('scrolled', window.scrollY > 10);
+    stBtn.classList.toggle('visible', window.scrollY > 300);
+  }, {passive:true});
+
+  // ══ FLOOR SWITCH ════════════════════════════════════════════
+  function switchFloor(f) {
+    if (selTableId) clearSelection();
+    activeFloor = f;
+    FLOOR_ORDER.forEach(function(key) {
+      var tab = document.getElementById('tab_' + key);
+      if (tab) tab.classList.toggle('active', key === f);
+    });
+    zoomOut();
+    renderAll();
+    if (window.innerWidth <= 768) renderMobileMap(null);
+  }
+
+  // ══ RENDER ALL ══════════════════════════════════════════════
+  function renderAll() { renderList(); renderMobileChips(); renderMap(); }
+
+  // ── Table list (desktop) ─────────────────────────────────────
+  function renderList() {
+    const list = document.getElementById('tableList');
+    const hdr  = document.getElementById('tlHeader');
+    list.innerHTML = ''; list.appendChild(hdr);
+    FLOORS[activeFloor].tables.forEach(t => {
+      const free = t.seats.filter(s=>s==='free').length;
+      const el   = document.createElement('div');
+      el.className = 'tl-item ' + t.status + (t.id===selTableId?' selected':'');
+      el.dataset.id = t.id;
+      let ac='ok', at=free+' libres';
+      if (t.status==='taken')      { at='Agotada'; ac='none'; }
+      else if (t.status==='in-process') { at='En proceso'; ac='proc'; }
+      else if (free===0)           { at='Agotada'; ac='none'; }
+      else if (free<=2)            { ac='few'; }
+      el.innerHTML = '<span class="tl-name">'+t.label+'</span><span class="tl-avail '+ac+'">'+at+'</span>';
+      if (t.status==='available' && free>0) {
+        el.addEventListener('mouseenter', ()=>doHover(t.id,true));
+        el.addEventListener('mouseleave', ()=>doHover(t.id,false));
+        el.addEventListener('click', ()=>selectTable(t.id));
+      }
+      list.appendChild(el);
+    });
+  }
+
+  // ── Mobile chips ─────────────────────────────────────────────
+  function renderMobileChips() {
+    const wrap = document.getElementById('mobileTableTabs');
+    wrap.innerHTML = '';
+    FLOORS[activeFloor].tables.forEach(t => {
+      const free = t.seats.filter(s=>s==='free').length;
+      const chip = document.createElement('span');
+      chip.className = 'mobile-table-tab ' + t.status + (t.id===selTableId?' selected':'');
+      chip.textContent = t.label;
+      if (t.status==='available' && free>0) {
+        chip.addEventListener('click', ()=>selectTable(t.id));
+      }
+      wrap.appendChild(chip);
+    });
+  }
+
+  // ── Desktop SVG map ──────────────────────────────────────────
+  function renderMap() {
+    const svg = document.getElementById('venueSvg');
+    const fd  = FLOORS[activeFloor];
+    svg.setAttribute('viewBox', fd.vb);
+    const tsvg = fd.tables.map(t => {
+      const free = t.seats.filter(s=>s==='free').length;
+      let cls = 'svg-tbl ' + t.status;
+      if (t.id===selTableId) cls += ' selected';
+      else if (t.id===hovId) cls += ' hovered';
+      const tiny = t.w<=30;
+      const fs   = tiny ? 8 : (t.w>95?12:10);
+      // Si hay espacio vertical, mostramos "libres/total" bajo el nombre
+      const showCount = t.h >= 38 && !tiny;
+      const cx = t.x+t.w/2;
+      const labelY = showCount ? (t.y+t.h/2-6) : (t.y+t.h/2);
+      const countFs = t.w>95 ? 10 : 8;
+      const countText = showCount
+        ? '<text class="tb-count" x="'+cx+'" y="'+(t.y+t.h/2+9)+'" text-anchor="middle" dominant-baseline="middle" font-size="'+countFs+'">'+free+'/'+t.cap+'</text>'
+        : '';
+      return '<g class="'+cls+'" id="svgt-'+t.id+'" data-id="'+t.id+'">'
+        +(t.shape==='circle'
+          ? '<circle class="tb" cx="'+cx+'" cy="'+(t.y+t.h/2)+'" r="'+(Math.min(t.w,t.h)/2)+'"/>'
+          : '<rect class="tb" x="'+t.x+'" y="'+t.y+'" width="'+t.w+'" height="'+t.h+'" rx="'+(tiny?3:7)+'" ry="'+(tiny?3:7)+'"/>')
+        +'<text x="'+cx+'" y="'+labelY+'" text-anchor="middle" dominant-baseline="middle" font-size="'+fs+'">'+t.label+'</text>'
+        +countText
+        +'</g>';
+    }).join('');
+    svg.innerHTML = fd.bg() + tsvg;
+    fd.tables.forEach(t => {
+      const g    = document.getElementById('svgt-'+t.id);
+      const free = t.seats.filter(s=>s==='free').length;
+      const clickable = t.status==='available' && (free>0 || (t.extraSeats||0)>0 || t.myReservation);
+      if (!g || !clickable) return;
+      g.addEventListener('mouseenter', ()=>doHover(t.id,true));
+      g.addEventListener('mouseleave', ()=>doHover(t.id,false));
+      g.addEventListener('click', ()=>selectTable(t.id));
+    });
+  }
+
+  // ── Hover ────────────────────────────────────────────────────
+  function doHover(id, on) {
+    hovId = on ? id : null;
+    const g  = document.getElementById('svgt-'+id);
+    const li = document.querySelector('.tl-item[data-id="'+id+'"]');
+    if (g  && id!==selTableId) g.classList.toggle('hovered', on);
+    if (li && id!==selTableId) li.classList.toggle('hovered', on);
+  }
+
+  // ══ SELECT TABLE → ZOOM + SHOW SEATS ════════════════════════
+  function selectTable(id) {
+    if (id === selTableId) return; // ya esta seleccionada
+
+    const t = FLOORS[activeFloor].tables.find(x=>x.id===id);
+    if (!t || t.status!=='available') return;
+    const free = t.seats.filter(s=>s==='free').length;
+    if (free===0 && (t.extraSeats||0)===0 && !t.myReservation) return;
+
+    // Si hay una mesa con bloqueo activo (asientos/extras ya elegidos),
+    // confirmar antes de cambiar - evita bloqueos huerfanos por error.
+    const hasActiveHold = selTableId && (selectedSeats.length>0 || extraQty>0);
+    if (hasActiveHold) {
+      const prevT = FLOORS[activeFloor].tables.find(x=>x.id===selTableId);
+      showTableSwitchConfirm(prevT ? prevT.label : selTableId, t.label, id);
+      return;
+    }
+
+    doSelectTable(id, t);
+  }
+
+  function doSelectTable(id, t) {
+    // Si cambiamos de mesa, liberamos cualquier hold sin terminar de la anterior
+    if (selTableId && selTableId !== id) {
+      releaseHoldIfDraft();
+      selectedSeats = [];
+      extraQty = 0;
+      stopTimer();
+    }
+    selTableId = id;
+
+    // Restaurar seleccion previa si ya tenia un hold en esta mesa (esta sesion)
+    if (t.myReservation) {
+      currentReservationId = t.myReservation.id;
+      selectedSeats = (t.myReservation.seat_indices||[]).slice();
+      extraQty = t.myReservation.extra_seats||0;
+      extensionCount = t.myReservation.extension_count||0;
+      reservationFinalized = false;
+    } else {
+      currentReservationId = null;
+      extensionCount = 0;
+      reservationFinalized = false;
+    }
+
+    // Update list + chips
+    document.querySelectorAll('.tl-item').forEach(li => li.classList.toggle('selected', li.dataset.id===id));
+    document.querySelectorAll('.mobile-table-tab').forEach(c => {
+      c.classList.toggle('selected', c.textContent===t.label && t.status==='available');
+    });
+
+    if (window.innerWidth > 768) {
+      zoomToTable(t);
+    } else {
+      renderMobileMap(t);
+      showMobileSeats(t);
+    }
+
+    showFloatPanel(t);
+
+    // Si recuperamos un hold existente, reanudar el timer con su expiracion real
+    if (t.myReservation && t.myReservation.expires_at) {
+      startTimer(t.myReservation.expires_at);
+    }
+  }
+
+  // ── Confirmacion para cambiar de mesa con bloqueo activo ──────
+  let pendingTableSwitch = null;
+  function showTableSwitchConfirm(fromLabel, toLabel, toId) {
+    pendingTableSwitch = toId;
+    document.getElementById('switchConfirmText').innerHTML =
+      'Tienes lugares seleccionados en la mesa <strong>'+fromLabel+'</strong>. '
+      +'Si cambias a la mesa <strong>'+toLabel+'</strong>, tu seleccion actual se liberara '
+      +'y el tiempo de bloqueo iniciara de nuevo en la nueva mesa.';
+    document.getElementById('switchConfirmBackdrop').style.display = 'block';
+    document.getElementById('switchConfirmModal').style.display = 'block';
+  }
+  function hideTableSwitchConfirm() {
+    pendingTableSwitch = null;
+    document.getElementById('switchConfirmBackdrop').style.display = 'none';
+    document.getElementById('switchConfirmModal').style.display = 'none';
+  }
+  function confirmTableSwitch() {
+    const toId = pendingTableSwitch;
+    hideTableSwitchConfirm();
+    if (!toId) return;
+    const t = FLOORS[activeFloor].tables.find(x=>x.id===toId);
+    if (!t) return;
+    doSelectTable(toId, t);
+  }
+
+  // Libera (borra) el hold 'pending' propio si aun no se finalizo con el formulario
+  function releaseHoldIfDraft() {
+    if (currentReservationId && !reservationFinalized) {
+      sbDelete('reservations', 'id=eq.'+currentReservationId+'&session_token=eq.'+SESSION_TOKEN).catch(()=>{});
+      currentReservationId = null;
+    }
+  }
+
+  // ── Desktop zoom to table + draw individual seats ────────────
+  // En vez de usar transform CSS (que mezcla unidades de viewBox con
+  // pixeles del contenedor), cambiamos directamente el viewBox del SVG
+  // para encuadrar la mesa y sus asientos. Igual que en movil.
+  function computeSeatLayout(t) {
+    const r      = 14;
+    const perRow = Math.max(1, Math.min(t.cap, Math.floor(t.w / (r*2+4))));
+    const rows   = Math.ceil(t.cap / perRow);
+    return { r, perRow, rows };
+  }
+
+  function zoomToTable(t) {
+    const svg = document.getElementById('venueSvg');
+    const { r, perRow, rows } = computeSeatLayout(t);
+
+    const seatsW = perRow*(r*2+4) - 4;
+    const seatsH = rows*(r*2+6);
+    const marginX = 30, marginTop = 26, marginBottom = 34;
+
+    let boxW = Math.max(t.w, seatsW) + marginX*2;
+    let boxH = t.h + seatsH + marginTop + marginBottom;
+    // Minimo razonable para que mesas chicas (2 asientos) no se vean exageradamente cerca
+    boxW = Math.max(boxW, 160);
+    boxH = Math.max(boxH, 150);
+    const x1   = (t.x + t.w/2) - boxW/2;
+    const y1   = t.y - marginTop;
+
+    animateViewBox(svg, x1+' '+y1+' '+boxW+' '+boxH, 400);
+    isZoomed = true;
+
+    document.getElementById('zoomHint').classList.add('visible');
+    document.getElementById('zoomBackBtn').classList.add('visible');
+
+    // Draw seat circles around the table in SVG
+    drawSeatCircles(t, svg);
+  }
+
+  // Anima el viewBox del SVG suavemente entre su valor actual y uno nuevo
+  function animateViewBox(svg, toVB, duration) {
+    const from = svg.viewBox.baseVal;
+    const fromVals = [from.x, from.y, from.width, from.height];
+    const toVals   = toVB.split(' ').map(Number);
+    const start    = performance.now();
+
+    function step(now) {
+      const t = Math.min(1, (now-start)/duration);
+      const ease = 1 - Math.pow(1-t, 3); // ease-out cubic
+      const cur = fromVals.map((v,i) => v + (toVals[i]-v)*ease);
+      svg.setAttribute('viewBox', cur.join(' '));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function drawSeatCircles(t, svg) {
+    // Remove previous seat circles
+    svg.querySelectorAll('.svg-seat-group').forEach(g => g.remove());
+
+    const g     = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','svg-seat-group');
+
+    const { r, perRow, rows } = computeSeatLayout(t);
+    const startY   = t.y + t.h + 10;
+
+    let idx = 0;
+    for (let row=0; row<rows; row++) {
+      const rowCount = Math.min(perRow, t.cap-idx);
+      const rowW     = rowCount*(r*2+4)-4;
+      const startX   = t.x + t.w/2 - rowW/2 + r;
+      for (let col=0; col<rowCount; col++) {
+        const cx = startX + col*(r*2+4);
+        const cy = startY + row*(r*2+6);
+        const seatIdx = idx;
+        const st = selectedSeats.includes(seatIdx) ? 'selected' : t.seats[seatIdx];
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r',  r);
+        circle.setAttribute('class','svg-seat '+st);
+        circle.setAttribute('data-seat', seatIdx);
+        if (st!=='taken' && st!=='pending') {
+          circle.addEventListener('click', e => {
+            e.stopPropagation();
+            toggleSeat(seatIdx, t, svg);
+          });
+        }
+        // Seat number label
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x', cx);
+        txt.setAttribute('y', cy);
+        txt.setAttribute('text-anchor','middle');
+        txt.setAttribute('dominant-baseline','middle');
+        txt.setAttribute('font-size','9');
+        txt.setAttribute('fill', st==='taken'||st==='pending' ? '#555' : '#000');
+        txt.setAttribute('pointer-events','none');
+        txt.textContent = seatIdx+1;
+        g.appendChild(circle);
+        g.appendChild(txt);
+        idx++;
+      }
+    }
+    svg.appendChild(g);
+  }
+
+  // Actualiza solo class/fill de los circulos existentes (sin recrearlos),
+  // para no perder el estado :hover del mouse al alternar un asiento.
+  function updateSeatCircles(t, svg) {
+    svg.querySelectorAll('.svg-seat-group .svg-seat').forEach(function(circle) {
+      const seatIdx = Number(circle.getAttribute('data-seat'));
+      const st = selectedSeats.includes(seatIdx) ? 'selected' : t.seats[seatIdx];
+      circle.setAttribute('class', 'svg-seat '+st);
+    });
+  }
+
+  function toggleSeat(seatIdx, t, svg) {
+    const already = selectedSeats.indexOf(seatIdx);
+    if (already > -1) {
+      selectedSeats.splice(already,1);
+    } else {
+      selectedSeats.push(seatIdx);
+    }
+    // Actualizar circulos existentes (sin recrear, preserva :hover)
+    updateSeatCircles(t, svg);
+    updateFloatPanel(t);
+    syncHold(t);
+  }
+
+  function zoomOut() {
+    const svg = document.getElementById('venueSvg');
+    const fd  = FLOORS[activeFloor];
+    if (fd) animateViewBox(svg, fd.vb, 350);
+    document.getElementById('zoomHint').classList.remove('visible');
+    document.getElementById('zoomBackBtn').classList.remove('visible');
+    svg.querySelectorAll('.svg-seat-group').forEach(g=>g.remove());
+    isZoomed = false;
+  }
+
+  // ══ FLOAT PANEL ═════════════════════════════════════════════
+  function showFloatPanel(t) {
+    const panel = document.getElementById('floatPanel');
+    document.getElementById('fpTable').textContent = t.label;
+    updateFloatPanel(t);
+    panel.classList.add('visible');
+  }
+
+  function updateFloatPanel(t) {
+    if (!t) t = FLOORS[activeFloor].tables.find(x=>x.id===selTableId);
+    if (!t) return;
+    const free   = t.seats.filter(s=>s==='free').length;
+    const sel    = selectedSeats.length;
+    const maxExt = t.extraSeats || 0;
+    document.getElementById('fpAvail').textContent = free+' lugar'+(free!==1?'es':'')+' libres';
+
+    // Resumen de asientos seleccionados (la seleccion se hace en el mapa)
+    const sumEl = document.getElementById('fpSelectedSeats');
+    if (sel > 0) {
+      sumEl.innerHTML = 'Asientos seleccionados: <strong>' + selectedSeats.map(i=>i+1).sort((a,b)=>a-b).join(', ') + '</strong>';
+    } else {
+      sumEl.innerHTML = '<em>Toca un asiento en el mapa para seleccionarlo</em>';
+    }
+
+    // Lugares Adicionales section
+    // Solo se habilita cuando el cliente ya tomo todos los asientos
+    // libres visibles de la mesa (free). Si no, se ve opaco/inactivo.
+    const extRow = document.getElementById('fpExtras');
+    const unlocked = sel >= free; // sel ya cubre todos los libres mostrados
+    if (!unlocked && extraQty > 0) extraQty = 0; // si perdio el desbloqueo, resetea
+    if (maxExt > 0) {
+      extRow.style.display = 'flex';
+      extRow.classList.toggle('locked', !unlocked);
+      if (unlocked) {
+        document.getElementById('fpExtrasMax').textContent = 'max '+maxExt;
+      } else {
+        document.getElementById('fpExtrasMax').textContent = free===1
+          ? 'Selecciona el asiento libre para desbloquear'
+          : 'Selecciona los '+free+' asientos libres para desbloquear';
+      }
+      document.getElementById('fpExtraVal').textContent  = extraQty;
+      document.getElementById('fpExtraMinus').disabled   = !unlocked || extraQty <= 0;
+      document.getElementById('fpExtraPlus').disabled    = !unlocked || extraQty >= maxExt;
+    } else {
+      extRow.style.display = 'none';
+    }
+
+    // Total
+    const totalSeats = sel + extraQty;
+    const total = document.getElementById('fpTotal');
+    const sub   = document.getElementById('fpTotalSub');
+    const btn   = document.getElementById('reserveBtn');
+    if (totalSeats > 0) {
+      total.innerHTML = '<em>$</em>'+(totalSeats*EVENT.price).toLocaleString('es-MX');
+      const parts = [];
+      if (sel > 0)      parts.push(sel+' asiento'+(sel!==1?'s':''));
+      if (extraQty > 0) parts.push(extraQty+' adicional'+(extraQty!==1?'es':''));
+      sub.textContent = parts.join(' + ')+' x $'+EVENT.price;
+      btn.disabled = false;
+    } else {
+      total.innerHTML = '<em>$</em>&#8212;';
+      sub.textContent = 'Toca un asiento para seleccionarlo';
+      btn.disabled = true;
+    }
+  }
+
+  function changeExtra(delta) {
+    const t = FLOORS[activeFloor].tables.find(x=>x.id===selTableId);
+    if (!t) return;
+    const maxExt = t.extraSeats || 0;
+    extraQty = Math.max(0, Math.min(extraQty + delta, maxExt));
+    updateFloatPanel(t);
+    syncHold(t);
+  }
+
+  function toggleSeatPanel(seatIdx, t) {
+    const already = selectedSeats.indexOf(seatIdx);
+    if (already > -1) selectedSeats.splice(already,1);
+    else selectedSeats.push(seatIdx);
+
+    // Update desktop SVG seats if zoomed
+    if (isZoomed) {
+      const svg = document.getElementById('venueSvg');
+      updateSeatCircles(t, svg);
+    }
+    // Update mobile seats
+    if (window.innerWidth <= 768) {
+      showMobileSeats(t);
+      renderMobileMap(t); // re-render to show seat colors
+    }
+
+    updateFloatPanel(t);
+    syncHold(t);
+  }
+
+  function clearSelection() {
+    releaseHoldIfDraft();
+    selectedSeats = [];
+    extraQty      = 0;
+    selTableId    = null;
+    currentReservationId = null;
+    extensionCount = 0;
+    reservationFinalized = false;
+    stopTimer();
+    zoomOut();
+    mobileZoomOut();
+    document.getElementById('floatPanel').classList.remove('visible');
+    document.querySelectorAll('.tl-item').forEach(li => li.classList.remove('selected'));
+    document.querySelectorAll('.mobile-table-tab').forEach(c => c.classList.remove('selected'));
+    document.getElementById('mobileZoomDetail').classList.remove('visible');
+  }
+
+  // ══ MOBILE MAP ══════════════════════════════════════════════
+  function renderMobileMap(zoomTable) {
+    if (window.innerWidth > 768) return;
+    const fd  = FLOORS[activeFloor];
+    const svg = document.getElementById('mobileVenueSvg');
+
+    let vb;
+    const vbParts = (fd.vb||'0 0 960 680').split(' ').map(Number);
+    const maxW = vbParts[2]||960, maxH = vbParts[3]||680;
+    if (zoomTable) {
+      const pad  = 90;
+      const x1   = Math.max(0, zoomTable.x-pad);
+      const y1   = Math.max(0, zoomTable.y-pad);
+      const x2   = Math.min(maxW, zoomTable.x+zoomTable.w+pad);
+      const y2   = Math.min(maxH, zoomTable.y+zoomTable.h+pad+60); // extra for seats below
+      vb = x1+' '+y1+' '+(x2-x1)+' '+(y2-y1);
+      mobileZoomed = true;
+    } else {
+      vb = fd.vb || '0 0 960 680';
+      mobileZoomed = false;
+    }
+    svg.setAttribute('viewBox', vb);
+    svg.removeAttribute('height');
+    svg.removeAttribute('width');
+
+    const tsvg = fd.tables.map(t => {
+      let cls = 'svg-tbl '+t.status;
+      if (t.id===selTableId) cls += ' selected';
+      const tiny = t.w<=30, fs = tiny?8:(t.w>95?12:10);
+      return '<g class="'+cls+'" id="msvgt-'+t.id+'">'
+        +(t.shape==='circle'
+          ? '<circle class="tb" cx="'+(t.x+t.w/2)+'" cy="'+(t.y+t.h/2)+'" r="'+(Math.min(t.w,t.h)/2)+'"/>'
+          : '<rect class="tb" x="'+t.x+'" y="'+t.y+'" width="'+t.w+'" height="'+t.h+'" rx="'+(tiny?3:7)+'"/>')
+        +'<text x="'+(t.x+t.w/2)+'" y="'+(t.y+t.h/2)+'" text-anchor="middle" dominant-baseline="middle" font-size="'+fs+'">'+t.label+'</text>'
+        +'</g>';
+    }).join('');
+
+    svg.innerHTML = fd.bg() + tsvg;
+    fd.tables.forEach(t => {
+      const g    = document.getElementById('msvgt-'+t.id);
+      const free = t.seats.filter(s=>s==='free').length;
+      if (!g || t.status!=='available' || free===0) return;
+      g.addEventListener('click', () => { selectTable(t.id); });
+    });
+  }
+
+  function showMobileSeats(t) {
+    const wrap = document.getElementById('mzdSeats');
+    document.getElementById('mzdTitle').textContent = t.label;
+    const free = t.seats.filter(s=>s==='free').length;
+    document.getElementById('mzdAvail').textContent = free+' libres';
+    wrap.innerHTML = '';
+    t.seats.forEach((st, i) => {
+      const isSel = selectedSeats.includes(i);
+      const cls   = isSel ? 'selected' : st;
+      const btn   = document.createElement('div');
+      btn.className   = 'mzd-seat '+cls;
+      btn.textContent = i+1;
+      if (st==='free'||isSel) {
+        btn.addEventListener('click', () => toggleSeatPanel(i, t));
+      }
+      wrap.appendChild(btn);
+    });
+    document.getElementById('mobileZoomDetail').classList.add('visible');
+  }
+
+  function mobileZoomOut() {
+    document.getElementById('mobileZoomDetail').classList.remove('visible');
+    mobileZoomed = false;
+    renderMobileMap(null);
+  }
+
+  // ══ TIMER ════════════════════════════════════════════════════
+  function startTimer(expiresAtIso) {
+    stopTimer();
+    const target = expiresAtIso
+      ? new Date(expiresAtIso).getTime()
+      : Date.now() + (EVENT.block_minutes||10)*60000;
+    document.getElementById('fpTimer').classList.add('active');
+    function tick() {
+      const remaining = Math.max(0, Math.round((target - Date.now())/1000));
+      const m = String(Math.floor(remaining/60)).padStart(2,'0');
+      const s = String(remaining%60).padStart(2,'0');
+      document.getElementById('fpTimerCount').textContent = m+':'+s;
+      if (remaining<=0) { stopTimer(); showHoldExpiredDialog(); }
+    }
+    tick();
+    timerIv = setInterval(tick, 1000);
+  }
+  function stopTimer() {
+    clearInterval(timerIv); timerIv = null;
+    document.getElementById('fpTimer').classList.remove('active');
+  }
+
+  // ── Sincroniza el "hold" (bloqueo) con Supabase, con debounce ──
+  function syncHold(t) {
+    clearTimeout(syncHoldTimer);
+    syncHoldTimer = setTimeout(function(){ doSyncHold(t); }, 450);
+  }
+
+  async function doSyncHold(t) {
+    const total = selectedSeats.length + extraQty;
+    const blockMs = (EVENT.block_minutes||10)*60000;
+    const expiresAt = new Date(Date.now() + blockMs).toISOString();
+
+    if (total === 0) {
+      if (currentReservationId) {
+        try { await sbDelete('reservations', 'id=eq.'+currentReservationId+'&session_token=eq.'+SESSION_TOKEN); } catch(e) {}
+        currentReservationId = null;
+      }
+      stopTimer();
+      return;
+    }
+
+    const totalAmount = total * EVENT.price_cents;
+
+    try {
+      var wasNew = !currentReservationId;
+      if (wasNew) { currentReservationId = uuid(); extensionCount = 0; }
+
+      if (wasNew) {
+        await sbPost('reservations', {
+          id: currentReservationId,
+          event_id: EVENT.id,
+          table_id: t.id,
+          holder_name: '', holder_phone: '', holder_email: '',
+          seats: selectedSeats.length,
+          extra_seats: extraQty,
+          seat_indices: selectedSeats,
+          total_amount: totalAmount,
+          payment_status: 'draft',
+          expires_at: expiresAt,
+          session_token: SESSION_TOKEN
+        });
+      } else {
+        await sbPatch('reservations', 'id=eq.'+currentReservationId+'&session_token=eq.'+SESSION_TOKEN, {
+          seats: selectedSeats.length,
+          extra_seats: extraQty,
+          seat_indices: selectedSeats,
+          total_amount: totalAmount,
+          expires_at: expiresAt
+        });
+      }
+      startTimer(expiresAt);
+    } catch(err) {
+      console.error('Error sincronizando bloqueo:', err);
+      showToast('No se pudo bloquear el lugar. Revisa tu conexion.');
+      currentReservationId = null; // permite reintentar como insercion nueva
+    }
+  }
+
+  // ── Notificaciones propias (sin alert() del navegador) ───────
+  let toastTimer = null;
+  function showToast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast visible' + (type ? ' '+type : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove('visible'); }, 4200);
+  }
+
+  function showSuccessModal(rows) {
+    const html = rows.map(function(r) {
+      return '<div class="success-summary__row"><span class="success-summary__label">'+r[0]+'</span><span class="success-summary__value">'+r[1]+'</span></div>';
+    }).join('');
+    document.getElementById('successSummary').innerHTML = html;
+    document.getElementById('successBackdrop').style.display = 'block';
+    document.getElementById('successModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSuccessModal() {
+    document.getElementById('successBackdrop').style.display = 'none';
+    document.getElementById('successModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  document.getElementById('successBackdrop').addEventListener('click', closeSuccessModal);
+
+  // ── Dialogo cuando se agota el tiempo de bloqueo ─────────────
+  function showHoldExpiredDialog() {
+    const maxExt = 2;
+    const remaining = maxExt - extensionCount;
+    const contBtn = document.getElementById('holdContinueBtn');
+    const msgEl   = document.getElementById('holdExpiredMsg');
+    if (remaining > 0) {
+      contBtn.style.display = '';
+      msgEl.innerHTML = 'Tu tiempo para completar la reserva se agoto. Si necesitas mas tiempo podemos darte '
+        + '<strong style="color:var(--white)">'+(EVENT.extension_minutes||5)+' minutos adicionales</strong>'
+        + (remaining < maxExt ? ' (te queda '+remaining+' '+(remaining===1?'oportunidad':'oportunidades')+').' : '.')
+        + ' Si ya no continuaras, tu mesa quedara disponible para otros clientes.';
+    } else {
+      contBtn.style.display = 'none';
+      msgEl.innerHTML = 'Tu tiempo para completar la reserva se agoto y ya no es posible extenderlo mas. '
+        + 'Tu mesa quedara disponible para otros clientes.';
+    }
+    document.getElementById('holdExpiredBackdrop').style.display = 'block';
+    document.getElementById('holdExpiredModal').style.display = 'block';
+  }
+  function hideHoldExpiredDialog() {
+    document.getElementById('holdExpiredBackdrop').style.display = 'none';
+    document.getElementById('holdExpiredModal').style.display = 'none';
+  }
+  async function holdExpiredContinue() {
+    const t = FLOORS[activeFloor] && FLOORS[activeFloor].tables.find(x=>x.id===selTableId);
+    hideHoldExpiredDialog();
+    if (!t || !currentReservationId) return;
+    if (extensionCount >= 2) return; // por seguridad, el boton no deberia mostrarse en este caso
+    const expiresAt = new Date(Date.now() + (EVENT.extension_minutes||5)*60000).toISOString();
+    const newCount  = extensionCount + 1;
+    try {
+      await sbPatch('reservations', 'id=eq.'+currentReservationId+'&session_token=eq.'+SESSION_TOKEN, {
+        expires_at: expiresAt, extension_count: newCount
+      });
+      extensionCount = newCount;
+      startTimer(expiresAt);
+    } catch(err) {
+      console.error('Error extendiendo bloqueo:', err);
+    }
+  }
+  function holdExpiredCancel() {
+    hideHoldExpiredDialog();
+    reservationFinalized = false; // permitir que se borre
+    releaseHoldIfDraft();
+    clearSelection();
+  }
+
+  // ══ FORM ═════════════════════════════════════════════════════
+  function openForm() {
+    if (!selTableId || (selectedSeats.length===0 && extraQty===0)) return;
+    const t = FLOORS[activeFloor].tables.find(x=>x.id===selTableId);
+    const totalSeats = selectedSeats.length + extraQty;
+    let summaryHtml  =
+      '<span>Mesa: <strong>'+(t?t.label:selTableId)+'</strong></span>'
+      +'<span>Planta: <strong>'+FLOORS[activeFloor].label+'</strong></span>'
+      +'<span>Asientos: <strong>'+selectedSeats.map(i=>i+1).join(', ')+'</strong></span>';
+    if (extraQty > 0)
+      summaryHtml += '<span>Adicionales: <strong>'+extraQty+'</strong></span>';
+    summaryHtml += '<span>Total: <strong>$'+(totalSeats*EVENT.price).toLocaleString('es-MX')+' MXN</strong></span>';
+    document.getElementById('fmSummary').innerHTML = summaryHtml;
+
+    // Personalizacion de boletos: solo aplica si hay mas de 1 boleto
+    const tnField = document.getElementById('ticketNamesField');
+    const tnList  = document.getElementById('ticketNamesList');
+    if (totalSeats > 1) {
+      let rows = '';
+      selectedSeats.forEach(function(seatIdx){
+        rows += '<div class="tn-row"><span class="tn-label">Asiento '+(seatIdx+1)+'</span><input type="text" class="tn-input" placeholder="Nombre del invitado"/></div>';
+      });
+      for (let i=0; i<extraQty; i++) {
+        rows += '<div class="tn-row"><span class="tn-label">Adicional '+(i+1)+'</span><input type="text" class="tn-input" placeholder="Nombre del invitado"/></div>';
+      }
+      tnList.innerHTML = rows;
+      tnField.style.display = 'block';
+      tnList.style.display  = 'none';
+      document.getElementById('tnModeSwitch').checked = false;
+      document.getElementById('tnLabelSame').classList.add('active');
+      document.getElementById('tnLabelCustom').classList.remove('active');
+    } else {
+      tnField.style.display = 'none';
+      tnList.innerHTML = '';
+    }
+
+    document.getElementById('formBackdrop').style.display='block';
+    document.getElementById('formModal').style.display='block';
+    document.body.style.overflow='hidden';
+    setTimeout(()=>document.getElementById('fn').focus(),100);
+  }
+  function onTicketNameModeChange() {
+    const custom = document.getElementById('tnModeSwitch').checked;
+    document.getElementById('ticketNamesList').style.display = custom ? 'flex' : 'none';
+    document.getElementById('tnLabelSame').classList.toggle('active', !custom);
+    document.getElementById('tnLabelCustom').classList.toggle('active', custom);
+  }
+  function setTicketNameMode(custom) {
+    document.getElementById('tnModeSwitch').checked = custom;
+    onTicketNameModeChange();
+  }
+  function closeForm() {
+    document.getElementById('formBackdrop').style.display='none';
+    document.getElementById('formModal').style.display='none';
+    document.body.style.overflow='';
+  }
+  async function submitReservation() {
+    const fn=document.getElementById('fn').value.trim();
+    const ln=document.getElementById('ln').value.trim();
+    const ph=document.getElementById('ph').value.trim();
+    const em=document.getElementById('em').value.trim();
+    if (!fn||!ln||!ph||!em){ showToast('Por favor completa todos los campos.'); return; }
+
+    const t = FLOORS[activeFloor].tables.find(x=>x.id===selTableId);
+    if (!t) { showToast('Selecciona una mesa primero.'); return; }
+
+    const totalSeats = selectedSeats.length + extraQty;
+    const totalCents = totalSeats * EVENT.price_cents;
+    const expiresAt  = new Date(Date.now() + (EVENT.block_minutes||10)*60000).toISOString();
+    const holderName = fn + ' ' + ln;
+
+    // Nombres por boleto: [] = usar holderName para todos
+    let ticketNames = [];
+    if (document.getElementById('tnModeSwitch').checked) {
+      document.querySelectorAll('#ticketNamesList .tn-input').forEach(function(inp){
+        const v = inp.value.trim();
+        ticketNames.push(v || holderName);
+      });
+    }
+
+    const payBtn = document.querySelector('.btn-pay');
+    const originalTxt = payBtn.textContent;
+    payBtn.disabled = true;
+    payBtn.textContent = 'Verificando...';
+
+    // ── Validacion anti-duplicados: mismo telefono+correo en esta
+    // misma mesa con una reservacion pendiente activa (posible
+    // intento desde otro dispositivo). No aplica a otras mesas.
+    try {
+      const existing = await sbGet('reservations', {
+        select: 'id,holder_phone,holder_email',
+        event_id: 'eq.' + EVENT.id,
+        table_id: 'eq.' + selTableId,
+        payment_status: 'eq.pending'
+      });
+      const dup = existing.find(function(r) {
+        return r.id !== currentReservationId
+          && r.holder_phone === ph
+          && r.holder_email === em;
+      });
+      if (dup) {
+        payBtn.disabled = false;
+        payBtn.textContent = originalTxt;
+        showToast('Ya existe una reservacion pendiente para la mesa '+t.label+' con estos mismos datos de contacto. Si crees que es un error, contactanos por WhatsApp.');
+        return;
+      }
+    } catch(err) {
+      console.error('Error verificando duplicados:', err);
+      // continuamos: no bloqueamos la compra por un error de verificacion
+    }
+
+    payBtn.textContent = 'Procesando...';
+
+    var finalize;
+    var payload = {
+      holder_name: holderName, holder_phone: ph, holder_email: em,
+      seats: selectedSeats.length, extra_seats: extraQty, seat_indices: selectedSeats,
+      total_amount: totalCents, expires_at: expiresAt, ticket_names: ticketNames,
+      payment_status: 'pending' // de 'draft' a 'pending' al finalizar el formulario
+    };
+    if (currentReservationId) {
+      finalize = sbPatch('reservations', 'id=eq.'+currentReservationId+'&session_token=eq.'+SESSION_TOKEN, payload);
+    } else {
+      currentReservationId = uuid();
+      finalize = sbPost('reservations', Object.assign({
+        id: currentReservationId, event_id: EVENT.id, table_id: selTableId,
+        session_token: SESSION_TOKEN
+      }, payload));
+    }
+
+    finalize.then(async function() {
+      reservationFinalized = true;
+
+      // Si la preventa online esta activa y hay un monto a cobrar, redirige a Mercado Pago.
+      if (EVENT.presale_active && totalCents > 0) {
+        payBtn.textContent = 'Redirigiendo a Mercado Pago...';
+        try {
+          await redirectToMercadoPago(currentReservationId);
+          return; // se redirige fuera de la pagina; no continuar
+        } catch(err) {
+          console.error('Error iniciando pago Mercado Pago:', err);
+          // si falla, seguimos con el flujo de "pagar en taquilla" como respaldo
+        }
+      }
+
+      const seatList = selectedSeats.map(i=>i+1).join(', ');
+      const rows = [
+        ['Mesa', t.label],
+        ['Asientos', seatList || '\u2014'],
+      ];
+      if (extraQty > 0) rows.push(['Adicionales', String(extraQty)]);
+      rows.push(['Total', '$'+(totalCents/100).toLocaleString('es-MX')+' MXN']);
+      document.getElementById('successNote').innerHTML =
+        'Recibiras tus boletos QR por <strong>WhatsApp</strong> ('+ph+') y <strong>email</strong> ('+em+') al confirmar tu pago en taquilla.';
+      showSuccessModal(rows);
+      closeForm();
+      clearSelection();
+      // Recargar disponibilidad
+      loadEventData().then(function(){ renderAll(); if(window.innerWidth<=768) renderMobileMap(null); });
+    }).catch(function(err) {
+      console.error('Error creando reservacion:', err);
+      showToast('Hubo un error al procesar tu reservacion. Intenta de nuevo.');
+    }).finally(function() {
+      payBtn.disabled = false;
+      payBtn.textContent = originalTxt;
+    });
+  }
+
+  // ── MERCADO PAGO ─────────────────────────────────────────────
+  async function redirectToMercadoPago(reservationId) {
+    const res = await fetch(SB_URL + '/functions/v1/mp-create-preference', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ reservation_id: reservationId })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.init_point) throw new Error(data.error || 'No se pudo iniciar el pago.');
+    window.location.href = data.init_point;
+  }
+
+  // Maneja el regreso desde Mercado Pago (?mp=success|pending|failure&reservation_id=...)
+  function handleMpReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('mp');
+    if (!status) return;
+
+    // Limpia la URL para que un refresh no repita el mensaje
+    window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+
+    if (status === 'success') {
+      document.getElementById('successNote').innerHTML =
+        'Tu pago fue recibido por <strong>Mercado Pago</strong>. En unos momentos confirmaremos tu reservacion y recibiras tus boletos QR por WhatsApp y email.';
+      showSuccessModal([['Estado','Pago en confirmacion']]);
+    } else if (status === 'pending') {
+      showToast('Tu pago esta pendiente de confirmacion. Te avisaremos por WhatsApp y email en cuanto se confirme.');
+    } else if (status === 'failure') {
+      showToast('El pago no se completo. Tu reservacion sigue activa por unos minutos: puedes intentar de nuevo o pagar en taquilla.');
+    }
+  }
+
+  document.getElementById('formBackdrop').addEventListener('click', closeForm);
+  document.addEventListener('keydown', e => { if(e.key==='Escape'){closeForm();} });
+
+  // Orientation change
+  function handleOrientation() {
+    if (window.innerWidth<=768) renderMobileMap(mobileZoomed&&selTableId?FLOORS[activeFloor].tables.find(x=>x.id===selTableId):null);
+  }
+  window.addEventListener('resize', handleOrientation, {passive:true});
+  screen.orientation && screen.orientation.addEventListener('change', handleOrientation);
+
+  // ══ INIT ═════════════════════════════════════════════════════
+  loadEventData().then(function() {
+    renderAll();
+    if (window.innerWidth<=768) renderMobileMap(null);
+    handleMpReturn();
+  }).catch(function(err) {
+    console.error('Error cargando datos del evento:', err);
+  });
+</script>
+</body>
+</html>

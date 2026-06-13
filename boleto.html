@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StagePass — Boleto</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red:#CC0000; --black:#0a0a0a; --card:#111; --border:#1e1e1e;
+    --gray:#777; --light:#ccc; --green:#25D366;
+    --fd:'Bebas Neue',sans-serif; --fu:'Barlow Condensed',sans-serif; --fb:'Barlow',sans-serif;
+  }
+  body { background:var(--black); color:#fff; font-family:var(--fb); min-height:100dvh; display:flex; flex-direction:column; align-items:center; padding:0 0 40px; }
+
+  /* ── Header ── */
+  .header { width:100%; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
+  .logo { font-family:var(--fd); font-size:22px; letter-spacing:4px; color:#fff; }
+  .logo span { color:var(--red); }
+  .powered { font-size:10px; color:var(--gray); letter-spacing:1px; text-transform:uppercase; }
+
+  /* ── Status banner ── */
+  .status-wrap { width:100%; max-width:480px; padding:32px 20px 0; }
+  .status-card { border-radius:10px; padding:28px 24px; text-align:center; position:relative; overflow:hidden; }
+  .status-card::before { content:''; position:absolute; inset:0; opacity:.07; background:var(--status-color); }
+  .status-card.valid   { --status-color:#25D366; border:1.5px solid #25D366; }
+  .status-card.used    { --status-color:#eab308; border:1.5px solid #eab308; }
+  .status-card.invalid { --status-color:#e44; border:1.5px solid #e44; }
+  .status-card.loading { border:1.5px solid var(--border); }
+  .status-icon { font-size:52px; line-height:1; margin-bottom:10px; display:block; }
+  .status-title { font-family:var(--fd); font-size:36px; letter-spacing:3px; margin-bottom:6px; }
+  .status-card.valid   .status-title { color:#25D366; }
+  .status-card.used    .status-title { color:#eab308; }
+  .status-card.invalid .status-title { color:#e44; }
+  .status-sub { font-size:13px; color:var(--gray); line-height:1.6; }
+
+  /* ── Ticket detail card ── */
+  .ticket-card { width:100%; max-width:480px; background:var(--card); border:1px solid var(--border); border-radius:10px; margin:20px 20px 0; overflow:hidden; }
+  .ticket-banner { width:100%; height:110px; object-fit:cover; display:block; background:linear-gradient(135deg,#1a0000,#3d0c0c); }
+  .ticket-body { padding:20px; }
+  .tc-event { font-family:var(--fd); font-size:28px; letter-spacing:2px; line-height:1.1; margin-bottom:2px; }
+  .tc-cover  { font-size:11px; color:var(--red); letter-spacing:2px; text-transform:uppercase; margin-bottom:18px; }
+  .tc-divider { border:none; border-top:1px solid var(--border); margin:14px 0; }
+  .tc-row { display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; }
+  .tc-label { font-size:10px; color:var(--gray); letter-spacing:1px; text-transform:uppercase; font-family:var(--fu); font-weight:700; }
+  .tc-val   { font-family:var(--fu); font-size:15px; font-weight:700; color:#fff; text-align:right; }
+  .tc-seat-big { font-family:var(--fd); font-size:44px; letter-spacing:2px; color:var(--red); line-height:1; }
+  .tc-seat-sub { font-size:11px; color:var(--gray); margin-top:2px; }
+
+  /* ── Scan history (si ya fue escaneado) ── */
+  .scan-note { font-size:11px; color:#eab308; background:rgba(234,179,8,.1); border:1px solid rgba(234,179,8,.3); border-radius:6px; padding:10px 14px; margin:16px 0 0; line-height:1.7; }
+
+  /* ── Loading / error ── */
+  .loading-dots { display:inline-block; }
+  .loading-dots::after { content:'...'; animation:dots 1.2s steps(4,end) infinite; }
+  @keyframes dots { 0%,100%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+
+  /* ── Footer ── */
+  .footer { margin-top:32px; font-size:10px; color:var(--gray); text-align:center; letter-spacing:1px; text-transform:uppercase; padding:0 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Stage<span>Pass</span></div>
+  <div class="powered">Verificacion de Boleto</div>
+</div>
+
+<div class="status-wrap">
+  <div class="status-card loading" id="statusCard">
+    <span class="status-icon">&#8987;</span>
+    <div class="status-title">VERIFICANDO<span class="loading-dots"></span></div>
+    <div class="status-sub">Consultando el boleto en la base de datos...</div>
+  </div>
+</div>
+
+<div class="ticket-card" id="ticketCard" style="display:none">
+  <img class="ticket-banner" id="tcBanner" src="" alt=""/>
+  <div class="ticket-body">
+    <div class="tc-event" id="tcEvent"></div>
+    <div class="tc-cover" id="tcCover"></div>
+    <div class="tc-row" style="align-items:flex-start">
+      <div>
+        <div class="tc-label" style="margin-bottom:4px">Asiento</div>
+        <div class="tc-seat-big" id="tcSeat"></div>
+        <div class="tc-seat-sub" id="tcSeatSub"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="tc-label" style="margin-bottom:4px">Mesa</div>
+        <div class="tc-val" style="font-size:26px" id="tcTable"></div>
+      </div>
+    </div>
+    <hr class="tc-divider"/>
+    <div class="tc-row"><div class="tc-label">Titular</div><div class="tc-val" id="tcHolder"></div></div>
+    <div class="tc-row"><div class="tc-label">Recinto</div><div class="tc-val" id="tcVenue"></div></div>
+    <div class="tc-row"><div class="tc-label">Fecha</div><div class="tc-val" id="tcDate"></div></div>
+    <div class="tc-row"><div class="tc-label">Hora</div><div class="tc-val" id="tcTime"></div></div>
+    <div id="tcScanNote" class="scan-note" style="display:none"></div>
+  </div>
+</div>
+
+<div class="footer">
+  &copy; StagePass &mdash; Boleto personal e intransferible &mdash; QR de un solo uso
+</div>
+
+<script>
+  const SB_URL = 'https://hrvmubcmefdpvfpzqibv.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhydm11YmNtZWZkcHZmcHpxaWJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTcwODcsImV4cCI6MjA5NjYzMzA4N30.u0xB37zHHHSmiXQeBIOygoUbCpqkD7MLl2K9HB44lHo';
+
+  async function sbGet(table, params) {
+    var url = SB_URL + '/rest/v1/' + table + '?';
+    var parts = [];
+    for (var k in params) parts.push(k + '=' + encodeURIComponent(params[k]));
+    url += parts.join('&');
+    var res = await fetch(url, { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  function setStatus(type, icon, title, sub) {
+    var card = document.getElementById('statusCard');
+    card.className = 'status-card ' + type;
+    card.innerHTML = '<span class="status-icon">'+icon+'</span>'
+      + '<div class="status-title">'+title+'</div>'
+      + '<div class="status-sub">'+sub+'</div>';
+  }
+
+  async function loadTicket() {
+    var params = new URLSearchParams(window.location.search);
+    var qrCode = params.get('t') || params.get('qr') || window.location.pathname.split('/').pop();
+
+    if (!qrCode || qrCode === 'boleto.html') {
+      setStatus('invalid','&#10007;','INVALIDO','No se recibio un codigo de boleto valido.');
+      return;
+    }
+
+    try {
+      var tickets = await sbGet('tickets', {
+        select: '*,reservations(holder_name,event_id,events(band_name,cover_of,event_date,show_start,banner_url,venues(name)),tables(label))',
+        qr_code: 'eq.' + qrCode
+      });
+
+      var ticket = tickets && tickets[0];
+      if (!ticket) {
+        setStatus('invalid','&#10007;','INVALIDO','Este codigo QR no corresponde a ningun boleto registrado. Puede ser un boleto falso o de otro sistema.');
+        return;
+      }
+
+      var res  = ticket.reservations;
+      var ev   = res && res.events;
+      var venue = ev && ev.venues;
+      var table = res && res.tables;
+
+      // Mostrar info del boleto
+      document.getElementById('ticketCard').style.display = '';
+      var banner = ev && ev.banner_url;
+      var bannerEl = document.getElementById('tcBanner');
+      if (banner) { bannerEl.src = banner; bannerEl.style.display = ''; } else { bannerEl.style.display = 'none'; }
+
+      document.getElementById('tcEvent').textContent   = (ev && ev.band_name || '').toUpperCase();
+      document.getElementById('tcCover').textContent   = (ev && ev.cover_of) || '';
+      document.getElementById('tcSeat').textContent    = ticket.seat_number || (ticket.is_extra ? 'ADD' : '-');
+      document.getElementById('tcSeatSub').textContent = ticket.is_extra ? 'Lugar adicional' : ('Boleto ' + ticket.seat_number + ' de ' + (res && res.seat_count || '?'));
+      document.getElementById('tcTable').textContent   = (table && table.label) || '-';
+      document.getElementById('tcHolder').textContent  = (res && res.holder_name) || '-';
+      document.getElementById('tcVenue').textContent   = (venue && venue.name) || '-';
+
+      if (ev && ev.event_date) {
+        var d = new Date(ev.event_date + 'T12:00:00');
+        document.getElementById('tcDate').textContent = d.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      }
+      document.getElementById('tcTime').textContent = ev && ev.show_start ? ev.show_start.slice(0,5) + ' hrs' : '-';
+
+      // Estado del boleto
+      if (ticket.status === 'cancelled') {
+        setStatus('invalid','&#10007;','CANCELADO','Este boleto fue cancelado y no da acceso al evento.');
+        return;
+      }
+      if (ticket.scanned) {
+        var when = ticket.scanned_at
+          ? new Date(ticket.scanned_at).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+          : 'hora desconocida';
+        setStatus('used','&#9888;','YA INGRESO','Este boleto ya fue utilizado para acceder al evento.');
+        var note = document.getElementById('tcScanNote');
+        note.style.display = '';
+        note.innerHTML = '&#9888; Escaneado el ' + when + ' hrs. Si no fuiste tu quien entro, contacta a los organizadores.';
+      } else {
+        setStatus('valid','&#10003;','VALIDO','Boleto autentico. Presenta este codigo en la entrada.');
+      }
+    } catch(err) {
+      console.error('Error cargando boleto:', err);
+      setStatus('invalid','&#10007;','ERROR','No se pudo verificar el boleto. Revisa tu conexion e intenta de nuevo.');
+    }
+  }
+
+  loadTicket();
+</script>
+</body>
+</html>
