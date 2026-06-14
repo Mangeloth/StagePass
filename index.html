@@ -480,7 +480,14 @@
     function sbGet(table, params) {
       var url = SB_URL + '/rest/v1/' + table + '?';
       var parts = [];
-      for (var k in params) parts.push(k + '=' + encodeURIComponent(params[k]));
+      for (var k in params) {
+        var v = params[k];
+        // Valores con operadores PostgREST (in., eq., etc.) no deben codificar paréntesis ni puntos
+        var encoded = (typeof v === 'string' && /^(in|eq|neq|lt|gt|lte|gte|like|ilike|is)\./.test(v))
+          ? k + '=' + v
+          : k + '=' + encodeURIComponent(v);
+        parts.push(encoded);
+      }
       url += parts.join('&');
       return fetch(url, { headers: SB_HDR }).then(function(r) {
         if (!r.ok) throw new Error(r.status);
@@ -727,6 +734,7 @@
 
     // Una sola "celda" de medio (foto/video) para usar en la baldosa y en el modal
     function mediaInner(item, gr, name) {
+      if (!item) return '<div class="gallery-placeholder ' + gr + '"><div class="gallery-placeholder-icon">&#128247;</div></div>';
       if (item.type === 'video') {
         var ytId = ytIdFromUrl(item.url);
         var thumb = item.thumb_url || (ytId ? 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg' : '');
@@ -749,18 +757,16 @@
         items.forEach(function(it) { (byEvent[it.event_id] = byEvent[it.event_id] || []).push(it); });
 
         GALLERY_GROUPS = events
-          .filter(function(ev) { return ev.flyer_url || (byEvent[ev.id] && byEvent[ev.id].length); })
+          .filter(function(ev) { return byEvent[ev.id] && byEvent[ev.id].length; })
           .map(function(ev, i) {
             var venue = (ev.venues && ev.venues.name) || '';
             var evItems = byEvent[ev.id] || [];
-            // Portada: primera imagen del carrusel; si no hay items, cae al flyer
             var firstItem = evItems[0] || null;
             return {
               id: ev.id,
               name: (ev.band_name || '').toUpperCase() + (ev.cover_of ? ' \u2014 ' + ev.cover_of : ''),
               date: ev.event_date ? new Date(ev.event_date+'T12:00:00').toLocaleDateString('es-MX',{month:'long',year:'numeric'}) : '',
               venue: venue,
-              cover: null,           // siempre usamos firstItem o flyer abajo
               firstItem: firstItem,
               flyer: ev.flyer_url || null,
               gr: GAL_GRAD[i % GAL_GRAD.length],
