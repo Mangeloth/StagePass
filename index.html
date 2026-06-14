@@ -625,10 +625,6 @@
     function attachCardEvents() {
       document.querySelectorAll('.event-card').forEach(function(card) {
         function handleActivate() {
-          if (card.dataset.status === 'upcoming') {
-            showToast('Próximamente — detalles y reservaciones muy pronto.');
-            return;
-          }
           openOverlay(card);
         }
         card.addEventListener('click', handleActivate);
