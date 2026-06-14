@@ -1669,7 +1669,7 @@
   </div>
   <div class="modal-footer">
     <button class="btn-sm btn-outline" onclick="closeUserModal()">Cancelar</button>
-    <button class="btn-sm btn-outline" id="userDeleteBtn" style="display:none;color:#e44;border-color:#330000" onclick="deleteUser()">Eliminar</button>
+    <button class="btn-sm btn-outline" id="userDeleteBtn" hidden style="color:#e44;border-color:#330000" onclick="deleteUser()">Eliminar</button>
     <button class="btn-sm btn-red" id="userModalSaveBtn" onclick="saveUser()">Crear</button>
   </div>
 </div>
@@ -4136,7 +4136,7 @@
     document.getElementById('userModalTitle').textContent = isNew ? 'NUEVO USUARIO' : 'EDITAR USUARIO';
     document.getElementById('userModalSaveBtn').textContent = isNew ? 'Crear' : 'Guardar';
     const delBtn = document.getElementById('userDeleteBtn');
-    if (delBtn) delBtn.style.display = isNew ? 'none' : '';
+    if (delBtn) { if (isNew) delBtn.setAttribute('hidden',''); else delBtn.removeAttribute('hidden'); }
     document.getElementById('uFullName').value = u ? u.full_name : '';
     document.getElementById('uEmail').value     = u ? u.email : '';
     document.getElementById('uPhone').value     = (u && u.phone) || '';
@@ -4220,7 +4220,7 @@
 
   async function deleteUser() {
     if (!editingUserId) return;
-    const u = ALL_USERS.find(function(x){ return x.id === editingUserId; });
+    const u = USERS_LIST.find(function(x){ return x.id === editingUserId; });
     const name = u ? u.full_name : 'este usuario';
     if (!(await showConfirm('Eliminar a ' + name + '? Esta accion no se puede deshacer. Si tiene cuenta de acceso al panel, dejara de poder entrar.', { title:'ELIMINAR USUARIO', okLabel:'Eliminar' }))) return;
     try {
