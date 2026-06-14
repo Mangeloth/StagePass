@@ -752,14 +752,19 @@
           .filter(function(ev) { return ev.flyer_url || (byEvent[ev.id] && byEvent[ev.id].length); })
           .map(function(ev, i) {
             var venue = (ev.venues && ev.venues.name) || '';
+            var evItems = byEvent[ev.id] || [];
+            // Portada: primera imagen del carrusel; si no hay items, cae al flyer
+            var firstItem = evItems[0] || null;
             return {
               id: ev.id,
               name: (ev.band_name || '').toUpperCase() + (ev.cover_of ? ' \u2014 ' + ev.cover_of : ''),
               date: ev.event_date ? new Date(ev.event_date+'T12:00:00').toLocaleDateString('es-MX',{month:'long',year:'numeric'}) : '',
               venue: venue,
-              cover: ev.flyer_url || null,
+              cover: null,           // siempre usamos firstItem o flyer abajo
+              firstItem: firstItem,
+              flyer: ev.flyer_url || null,
               gr: GAL_GRAD[i % GAL_GRAD.length],
-              items: byEvent[ev.id] || []
+              items: evItems
             };
           });
 
@@ -769,10 +774,13 @@
         }
 
         track.innerHTML = GALLERY_GROUPS.map(function(g, i) {
-          var coverInner = g.cover
-            ? '<img src="' + g.cover + '" alt="' + g.name + '" loading="lazy"/>'
-            : mediaInner(g.items[0], g.gr, g.name);
-          var extra = g.items.length;
+          // Portada = primera imagen del carrusel; respaldo = flyer del evento
+          var coverInner = g.firstItem
+            ? mediaInner(g.firstItem, g.gr, g.name)
+            : (g.flyer
+                ? '<img src="' + g.flyer + '" alt="' + g.name + '" loading="lazy"/>'
+                : mediaInner(null, g.gr, g.name));
+          var extra = g.items.length > 1 ? g.items.length - 1 : 0;
           var badge = extra ? '<span class="gallery-tile__badge">+' + extra + '</span>' : '';
           return '<div class="gallery-tile" data-i="' + i + '" onclick="openEventGallery(' + i + ')">'
             + '<div class="gallery-tile__media">' + coverInner + '</div>'

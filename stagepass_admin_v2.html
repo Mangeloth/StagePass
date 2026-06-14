@@ -1472,10 +1472,12 @@
       <div id="promoVideoField" style="display:none">
         <div class="field">
           <label>Video promocional <span style="color:#555;font-weight:400">(para estado Próximamente)</span></label>
-          <input type="file" accept="video/*" id="evPromoVideoFile" onchange="previewPromoVideo(this)" style="font-size:12px;color:var(--gray)"/>
-          <input type="text" id="evPromoVideoUrl" placeholder="https://... (o sube un video arriba)" style="margin-top:6px;font-size:11px"/>
-          <video id="evPromoVideoPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border:1px solid var(--border);border-radius:3px;margin-top:8px;background:#000" muted loop playsinline></video>
-          <div style="font-size:10px;color:#555;margin-top:4px">Video corto tipo reel (&lt;1 min). Se reproducirá en bucle al abrir la tarjeta del evento en la cartelera.</div>
+          <div id="evPromoVideoPreviewWrap" style="display:none;margin-bottom:8px;border-radius:4px;overflow:hidden;background:#000;aspect-ratio:9/16;max-width:160px">
+            <video id="evPromoVideoPreview" style="width:100%;height:100%;object-fit:cover" muted loop playsinline></video>
+          </div>
+          <input type="file" accept="video/mp4,video/mov,video/quicktime,video/webm" id="evPromoVideoFile" onchange="previewPromoVideo(this)" style="font-size:12px;color:var(--gray)"/>
+          <input type="hidden" id="evPromoVideoUrl"/>
+          <div style="font-size:10px;color:#555;margin-top:6px;line-height:1.7">Sube un reel corto (MP4, MOV &mdash; menos de 1 min). Se reproducirá en bucle sin controles al abrir la tarjeta del evento.</div>
         </div>
       </div>
     <div class="field">
@@ -3263,8 +3265,11 @@
     if (!file) return;
     EVENT_PROMO_VIDEO_FILE = file;
     const url = URL.createObjectURL(file);
-    const vid = document.getElementById('evPromoVideoPreview');
-    vid.src = url; vid.style.display = '';
+    const vid  = document.getElementById('evPromoVideoPreview');
+    const wrap = document.getElementById('evPromoVideoPreviewWrap');
+    vid.src = url;
+    vid.play().catch(function(){});
+    wrap.style.display = '';
   }
 
   function previewEventImage(input, previewId, kind) {
@@ -3347,10 +3352,17 @@
     document.getElementById('evFlyerFile').value  = '';
     document.getElementById('evPromoVideoFile').value = '';
     const promoVidPrev = document.getElementById('evPromoVideoPreview');
+    const promoVidWrap = document.getElementById('evPromoVideoPreviewWrap');
     const promoVidUrl  = (ev && ev.promo_video_url) || '';
     document.getElementById('evPromoVideoUrl').value = promoVidUrl;
-    if (promoVidUrl) { promoVidPrev.src = promoVidUrl; promoVidPrev.style.display = ''; }
-    else { promoVidPrev.style.display = 'none'; promoVidPrev.src = ''; }
+    if (promoVidUrl) {
+      promoVidPrev.src = promoVidUrl;
+      promoVidPrev.play().catch(function(){});
+      promoVidWrap.style.display = '';
+    } else {
+      promoVidPrev.src = '';
+      promoVidWrap.style.display = 'none';
+    }
     const bannerPrev = document.getElementById('evBannerPreview');
     const flyerPrev  = document.getElementById('evFlyerPreview');
     if (ev && ev.banner_url) { bannerPrev.src = ev.banner_url; bannerPrev.style.display = ''; } else { bannerPrev.style.display = 'none'; }
@@ -4825,6 +4837,8 @@
 
   function stopScanner() {
     scannerActive = false;
+    lastDetectedCode = null;
+    detectionCount = 0;
     if (scannerAnimFrame) cancelAnimationFrame(scannerAnimFrame);
     if (scannerStream) { scannerStream.getTracks().forEach(function(t){ t.stop(); }); scannerStream = null; }
     document.getElementById('scannerVideoWrap').style.display = 'none';
@@ -4833,6 +4847,10 @@
     document.getElementById('scannerBox').className = 'scanner-box';
     document.getElementById('scannerResult').classList.remove('visible');
   }
+
+  let lastDetectedCode = null;
+  let detectionCount   = 0;
+  const DETECTION_THRESHOLD = 3; // debe leerse el mismo código N frames seguidos
 
   function tickScan() {
     if (!scannerActive) return;
@@ -4844,10 +4862,24 @@
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-      if (code) {
-        stopScanner();
-        processQrCode(code.data);
-        return;
+      if (code && code.data && code.data.length > 8) {
+        if (code.data === lastDetectedCode) {
+          detectionCount++;
+          if (detectionCount >= DETECTION_THRESHOLD) {
+            stopScanner();
+            processQrCode(code.data);
+            return;
+          }
+        } else {
+          lastDetectedCode = code.data;
+          detectionCount = 1;
+        }
+      } else {
+        // Reset si no hay codigo estable
+        if (detectionCount > 0) {
+          lastDetectedCode = null;
+          detectionCount = 0;
+        }
       }
     }
     scannerAnimFrame = requestAnimationFrame(tickScan);
