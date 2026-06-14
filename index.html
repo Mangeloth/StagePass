@@ -530,32 +530,41 @@
 
       // ── PRÓXIMAMENTE: solo video + banner, sin info ──────────
       if (d.status === 'upcoming') {
+        console.log('[StagePass] upcoming click - promo:', d.promo, 'flyer:', d.flyer);
         ovFlyer.style.backgroundImage = '';
+        ovFlyer.style.backgroundSize  = '';
+        ovFlyer.style.backgroundPosition = '';
         ovFlyer.style.padding = '0';
-        ovFlyer.style.justifyContent = 'center';
-        ovFlyer.style.alignItems = 'center';
-        if (d.promo) {
-          ovFlyer.innerHTML = '<video src="' + d.promo + '" style="width:100%;height:100%;object-fit:cover;border-radius:6px" muted loop autoplay playsinline></video>'
-            + '<button class="ov-close" onclick="closeOverlay()" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%)">&#8592; Volver a la cartelera</button>';
-        } else if (d.flyer) {
-          var op = parseFloat(d.opacity) || 0.5;
-          ovFlyer.style.backgroundImage = 'linear-gradient(rgba(10,10,10,' + op + '),rgba(10,10,10,' + op + ')), url("' + d.flyer + '")';
-          ovFlyer.style.backgroundSize = 'cover';
-          ovFlyer.style.backgroundPosition = 'center';
-          ovFlyer.innerHTML = '<div style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff;text-align:center;padding:20px">PR\u00d3XIMAMENTE</div>'
-            + '<button class="ov-close" onclick="closeOverlay()">&#8592; Volver a la cartelera</button>';
+        ovFlyer.style.position = 'relative';
+
+        var promoUrl = (d.promo && d.promo.length > 4) ? d.promo : null;
+        if (promoUrl) {
+          ovFlyer.innerHTML = ''
+            + '<video style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px" muted loop playsinline></video>'
+            + '<button class="ov-close" onclick="closeOverlay()" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:2">&#8592; Volver</button>';
+          var vid = ovFlyer.querySelector('video');
+          vid.src = promoUrl;
         } else {
-          ovFlyer.innerHTML = '<div style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff;text-align:center;padding:20px">PR\u00d3XIMAMENTE</div>'
-            + '<button class="ov-close" onclick="closeOverlay()">&#8592; Volver a la cartelera</button>';
+          ovFlyer.innerHTML = ''
+            + '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">'
+            + '<span style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff">PRÓXIMAMENTE</span>'
+            + '</div>'
+            + '<button class="ov-close" onclick="closeOverlay()" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%)">&#8592; Volver</button>';
         }
+
         ovInner.style.animation = 'none';
         ovInner.offsetHeight;
         ovInner.style.animation = '';
         ovBackdrop.style.display = ovCard.style.display = 'block';
         document.body.style.overflow = 'hidden';
-        // Autoplay video después de que el DOM esté listo
-        var vid = ovFlyer.querySelector('video');
-        if (vid) setTimeout(function(){ vid.play().catch(function(){}); }, 100);
+
+        if (promoUrl) {
+          var v = ovFlyer.querySelector('video');
+          if (v) {
+            v.load();
+            v.play().catch(function(e){ console.log('[StagePass] video play error:', e); });
+          }
+        }
         return;
       }
 
