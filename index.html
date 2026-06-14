@@ -530,7 +530,7 @@
 
       // ── PRÓXIMAMENTE: solo video + banner, sin info ──────────
       if (d.status === 'upcoming') {
-        console.log('[StagePass] upcoming click - promo:', d.promo, 'flyer:', d.flyer);
+        console.log('[StagePass] upcoming click - promo:', d.promo);
         ovFlyer.style.backgroundImage = '';
         ovFlyer.style.backgroundSize  = '';
         ovFlyer.style.backgroundPosition = '';
@@ -538,18 +538,27 @@
         ovFlyer.style.position = 'relative';
 
         var promoUrl = (d.promo && d.promo.length > 4) ? d.promo : null;
+        var closeBtn = '<button class="ov-close" onclick="closeOverlay()" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:2">&#8592; Volver</button>';
+
         if (promoUrl) {
-          ovFlyer.innerHTML = ''
-            + '<video style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px" muted loop playsinline></video>'
-            + '<button class="ov-close" onclick="closeOverlay()" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:2">&#8592; Volver</button>';
-          var vid = ovFlyer.querySelector('video');
-          vid.src = promoUrl;
+          // Detectar si es YouTube y extraer el video ID
+          var ytMatch = promoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|watch\?v=|.*[?&]v=))([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) {
+            var ytId = ytMatch[1];
+            var embedUrl = 'https://www.youtube.com/embed/' + ytId + '?autoplay=1&mute=1&loop=1&playlist=' + ytId + '&controls=0&showinfo=0&rel=0&playsinline=1&modestbranding=1';
+            ovFlyer.innerHTML = '<iframe src="' + embedUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:6px" allow="autoplay;encrypted-media" allowfullscreen></iframe>' + closeBtn;
+          } else {
+            // Archivo directo (mp4, mov, etc.)
+            ovFlyer.innerHTML = '<video style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px" muted loop playsinline></video>'
+              + '<button onclick="togglePromoSound(this)" style="position:absolute;top:14px;right:14px;z-index:2;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:50%;width:38px;height:38px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Activar sonido">&#128263;</button>'
+              + closeBtn;
+            var vid = ovFlyer.querySelector('video');
+            vid.src = promoUrl;
+            vid.load();
+            vid.play().catch(function(e){ console.log('[StagePass] video error:', e); });
+          }
         } else {
-          ovFlyer.innerHTML = ''
-            + '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">'
-            + '<span style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff">PRÓXIMAMENTE</span>'
-            + '</div>'
-            + '<button class="ov-close" onclick="closeOverlay()" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%)">&#8592; Volver</button>';
+          ovFlyer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff">PRÓXIMAMENTE</span></div>' + closeBtn;
         }
 
         ovInner.style.animation = 'none';
@@ -557,14 +566,6 @@
         ovInner.style.animation = '';
         ovBackdrop.style.display = ovCard.style.display = 'block';
         document.body.style.overflow = 'hidden';
-
-        if (promoUrl) {
-          var v = ovFlyer.querySelector('video');
-          if (v) {
-            v.load();
-            v.play().catch(function(e){ console.log('[StagePass] video play error:', e); });
-          }
-        }
         return;
       }
 
@@ -603,6 +604,14 @@
       if (vid) { vid.pause(); vid.src = ''; }
       ovBackdrop.style.display = ovCard.style.display = 'none';
       document.body.style.overflow = '';
+    }
+
+    function togglePromoSound(btn) {
+      var vid = ovFlyer.querySelector('video');
+      if (!vid) return;
+      vid.muted = !vid.muted;
+      btn.innerHTML = vid.muted ? '&#128263;' : '&#128266;';
+      btn.title = vid.muted ? 'Activar sonido' : 'Silenciar';
     }
 
     function handleCta(e, status, evId) {

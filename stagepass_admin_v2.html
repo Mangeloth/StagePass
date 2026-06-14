@@ -1476,8 +1476,9 @@
             <video id="evPromoVideoPreview" style="width:100%;height:100%;object-fit:cover" muted loop playsinline></video>
           </div>
           <input type="file" accept="video/mp4,video/mov,video/quicktime,video/webm" id="evPromoVideoFile" onchange="previewPromoVideo(this)" style="font-size:12px;color:var(--gray)"/>
-          <input type="hidden" id="evPromoVideoUrl"/>
-          <div style="font-size:10px;color:#555;margin-top:6px;line-height:1.7">Sube un reel corto (MP4, MOV &mdash; menos de 1 min). Se reproducirá en bucle sin controles al abrir la tarjeta del evento.</div>
+          <div style="font-size:10px;color:#777;margin:8px 0 4px">O pega un link de YouTube (Shorts o video normal):</div>
+          <input type="text" id="evPromoVideoUrl" placeholder="https://youtube.com/shorts/... o https://youtu.be/..." style="font-size:12px"/>
+          <div style="font-size:10px;color:#555;margin-top:6px;line-height:1.7">El video se reproducirá en bucle sin controles al abrir la tarjeta del evento. YouTube es recomendado para mejor calidad.</div>
         </div>
       </div>
     <div class="field">
@@ -3418,10 +3419,15 @@
         flyerUrl += '?t=' + Date.now();
       }
       if (EVENT_PROMO_VIDEO_FILE) {
-        btn.textContent = 'Subiendo video...';
-        const ext = (EVENT_PROMO_VIDEO_FILE.name.split('.').pop() || 'mp4').toLowerCase();
-        const promoUrl = await sbUpload('event-assets', folder+'/promo.'+ext, EVENT_PROMO_VIDEO_FILE);
-        document.getElementById('evPromoVideoUrl').value = promoUrl + '?t=' + Date.now();
+        // Solo subir archivo si no hay URL de YouTube pegada
+        const ytUrlField = document.getElementById('evPromoVideoUrl').value.trim();
+        const isYt = ytUrlField && /youtube\.com|youtu\.be/.test(ytUrlField);
+        if (!isYt) {
+          btn.textContent = 'Subiendo video...';
+          const ext = (EVENT_PROMO_VIDEO_FILE.name.split('.').pop() || 'mp4').toLowerCase();
+          const promoUrl = await sbUpload('event-assets', folder+'/promo.'+ext, EVENT_PROMO_VIDEO_FILE);
+          document.getElementById('evPromoVideoUrl').value = promoUrl + '?t=' + Date.now();
+        }
       }
       btn.textContent = 'Guardando...';
 
