@@ -2068,11 +2068,14 @@
   }
 
   // ── Establecer nueva contrasena (llega desde el link del correo) ──
-  // Supabase redirige con #access_token=...&type=recovery en el hash
+  // Supabase redirige con #access_token=...&type=recovery o type=invite en el hash
   let RECOVERY_TOKEN = null;
   function checkRecoveryHash() {
     const hash = window.location.hash;
-    if (!hash || hash.indexOf('type=recovery') === -1) return;
+    if (!hash) return;
+    const isRecovery = hash.indexOf('type=recovery') > -1;
+    const isInvite   = hash.indexOf('type=invite') > -1;
+    if (!isRecovery && !isInvite) return;
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get('access_token');
     if (!token) return;
@@ -2080,6 +2083,13 @@
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('recoverView').style.display = 'none';
     document.getElementById('resetView').style.display = 'block';
+    // Cambiar titulo si es invitacion nueva
+    if (isInvite) {
+      const title = document.getElementById('resetView').querySelector('h2');
+      if (title) title.textContent = 'CREAR CONTRASEÑA';
+      const subtitle = document.getElementById('resetView').querySelector('p');
+      if (subtitle) subtitle.textContent = 'Bienvenido a StagePass. Crea tu contraseña para acceder al panel.';
+    }
   }
 
   async function doResetPassword() {
