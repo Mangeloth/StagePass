@@ -609,9 +609,21 @@
       </div>
       <div class="ticket-names-list" id="ticketNamesList" style="display:none"></div>
     </div>
+    <div class="field" id="payMethodField" style="display:none">
+      <label>Método de pago</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <label style="flex:1;min-width:130px;display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:4px;padding:10px;cursor:pointer;font-size:13px" id="payOptTaquilla">
+          <input type="radio" name="payMethod" value="taquilla" checked onchange="onPayMethodChange()"/> Pagar en taquilla
+        </label>
+        <label style="flex:1;min-width:130px;display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:4px;padding:10px;cursor:pointer;font-size:13px" id="payOptOnline">
+          <input type="radio" name="payMethod" value="online" onchange="onPayMethodChange()"/> Mercado Pago <span style="font-size:10px;color:var(--gray)">(+5%)</span>
+        </label>
+      </div>
+      <div id="payMethodNote" style="font-size:11px;color:var(--gray);margin-top:6px;line-height:1.6"></div>
+    </div>
   </div>
   <div class="fm-footer">
-    <button class="btn-pay" onclick="submitReservation()">&#128179; Continuar al Pago</button>
+    <button class="btn-pay" id="btnContinuarPago" onclick="submitReservation()">&#128179; Continuar al Pago</button>
     <button class="btn-cancel" onclick="closeForm()">Cancelar</button>
     <p class="fm-note">Tu reserva se confirma unicamente al completar el pago.</p>
   </div>
@@ -1764,6 +1776,16 @@
     document.getElementById('formModal').style.display='block';
     document.body.style.overflow='hidden';
     setTimeout(()=>document.getElementById('fn').focus(),100);
+
+    // Mostrar selector de método de pago solo si la preventa online está activa
+    const payField = document.getElementById('payMethodField');
+    if (payField) {
+      payField.style.display = EVENT.presale_active ? '' : 'none';
+      // Reset a taquilla por defecto
+      const radios = document.querySelectorAll('input[name="payMethod"]');
+      radios.forEach(function(r){ r.checked = r.value === 'taquilla'; });
+      onPayMethodChange();
+    }
   }
   function onTicketNameModeChange() {
     const custom = document.getElementById('tnModeSwitch').checked;
@@ -1780,6 +1802,31 @@
     document.getElementById('formModal').style.display='none';
     document.body.style.overflow='';
   }
+  const MP_FEE_RATE = 0.05; // 5% comision Mercado Pago
+
+  function getSelectedPayMethod() {
+    const checked = document.querySelector('input[name="payMethod"]:checked');
+    return checked ? checked.value : 'taquilla';
+  }
+
+  function onPayMethodChange() {
+    const method = getSelectedPayMethod();
+    const totalSeats = (selectedSeats ? selectedSeats.length : 0) + (extraQty || 0);
+    const base = totalSeats * (EVENT.price_cents || 0);
+    const fee  = method === 'online' ? Math.round(base * MP_FEE_RATE) : 0;
+    const total = base + fee;
+
+    const note = document.getElementById('payMethodNote');
+    const btn  = document.getElementById('btnContinuarPago');
+    if (method === 'online') {
+      note.innerHTML = 'Subtotal: $'+(base/100).toLocaleString('es-MX')+' + Comisión MP 5%: $'+(fee/100).toLocaleString('es-MX')+' = <strong style="color:#fff">Total: $'+(total/100).toLocaleString('es-MX')+' MXN</strong>';
+      if (btn) btn.textContent = '💳 Pagar con Mercado Pago';
+    } else {
+      note.innerHTML = 'Pagarás en taquilla el día del evento. Total: <strong style="color:#fff">$'+(base/100).toLocaleString('es-MX')+' MXN</strong>';
+      if (btn) btn.innerHTML = '&#128179; Continuar al Pago';
+    }
+  }
+
   async function submitReservation() {
     const fn=document.getElementById('fn').value.trim();
     const ln=document.getElementById('ln').value.trim();
@@ -1791,7 +1838,10 @@
     if (!t) { showToast('Selecciona una mesa primero.'); return; }
 
     const totalSeats = selectedSeats.length + extraQty;
-    const totalCents = totalSeats * EVENT.price_cents;
+    const baseCents  = totalSeats * EVENT.price_cents;
+    const payOnline  = EVENT.presale_active && getSelectedPayMethod() === 'online';
+    const feeCents   = payOnline ? Math.round(baseCents * MP_FEE_RATE) : 0;
+    const totalCents = baseCents + feeCents;
     const expiresAt  = new Date(Date.now() + (EVENT.block_minutes||10)*60000).toISOString();
     const holderName = fn + ' ' + ln;
 
@@ -1858,7 +1908,7 @@
       reservationFinalized = true;
 
       // Si la preventa online esta activa y hay un monto a cobrar, redirige a Mercado Pago.
-      if (EVENT.presale_active && totalCents > 0) {
+      if (payOnline && totalCents > 0) {
         payBtn.textContent = 'Redirigiendo a Mercado Pago...';
         try {
           await redirectToMercadoPago(currentReservationId);

@@ -510,22 +510,25 @@
     }
 
     @media (max-width:768px) {
-      /* Stack controls above preview on mobile portrait */
+      #page-boleto { padding:0; }
+      #page-boleto > div { padding:12px; }
       .ticket-layout {
-        grid-template-columns:1fr;
-        overflow-x:hidden;
+        grid-template-columns: 1fr;
+        overflow-x: hidden;
       }
       .ticket-controls {
-        position:static;
-        width:100%;
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+        width: 100%;
       }
       .ticket-preview-wrap {
-        width:100%;
-        overflow-x:hidden;
+        width: 100%;
+        overflow-x: hidden;
       }
       .ticket-container {
-        overflow-x:hidden;
-        width:100%;
+        overflow-x: hidden;
+        width: 100%;
       }
       /* Horizontal ticket scales to fit mobile width */
       .ticket.horizontal {
@@ -781,7 +784,9 @@
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sb-logo">STAGE<span>PASS</span><small>Admin</small></div>
+  <div class="sb-logo">STAGE<span>PASS</span><small>Admin</small>
+    <a href="index.html" style="display:block;margin-top:6px;font-size:9px;color:var(--gray);text-decoration:none;letter-spacing:1px;font-family:var(--fu);font-weight:700;text-transform:uppercase">&#8592; Ver cartelera</a>
+  </div>
   <nav class="sb-nav">
     <div class="sb-section-label">Principal</div>
     <div class="sb-item active" onclick="goTo('dashboard',this)">
@@ -1274,6 +1279,10 @@
       <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
       <span>Mas</span>
     </div>
+    <a class="mbn-item" href="index.html" style="text-decoration:none;color:var(--gray)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Cartelera</span>
+    </a>
   </div>
 </div>
 
@@ -1460,6 +1469,15 @@
         <label class="toggle"><input type="checkbox" id="evPresaleActive" checked/><span class="toggle-slider"></span></label>
       </div>
     </div>
+      <div id="promoVideoField" style="display:none">
+        <div class="field">
+          <label>Video promocional <span style="color:#555;font-weight:400">(para estado Próximamente)</span></label>
+          <input type="file" accept="video/*" id="evPromoVideoFile" onchange="previewPromoVideo(this)" style="font-size:12px;color:var(--gray)"/>
+          <input type="text" id="evPromoVideoUrl" placeholder="https://... (o sube un video arriba)" style="margin-top:6px;font-size:11px"/>
+          <video id="evPromoVideoPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border:1px solid var(--border);border-radius:3px;margin-top:8px;background:#000" muted loop playsinline></video>
+          <div style="font-size:10px;color:#555;margin-top:4px">Video corto tipo reel (&lt;1 min). Se reproducirá en bucle al abrir la tarjeta del evento en la cartelera.</div>
+        </div>
+      </div>
     <div class="field">
       <label>Cierre de venta en linea <span style="color:#555;font-weight:400">(opcional)</span></label>
       <input type="datetime-local" id="evSalesCutoff"/>
@@ -1470,6 +1488,7 @@
         <select id="evStatus" onchange="onEventStatusChange()">
           <option value="draft">Borrador (no visible)</option>
           <option value="published">Publicado</option>
+          <option value="upcoming">Próximamente</option>
           <option value="sold_out">Agotado</option>
           <option value="rescheduled">Reprogramado</option>
           <option value="finished">Finalizado / Pasado</option>
@@ -3130,6 +3149,7 @@
   const EVENT_STATUS_BADGE = {
     draft:       '<span class="badge badge-gray">Borrador</span>',
     published:   '<span class="badge badge-green">Publicado</span>',
+    upcoming:    '<span class="badge badge-yellow">Próximamente</span>',
     sold_out:    '<span class="badge badge-yellow">Agotado</span>',
     rescheduled: '<span class="badge badge-blue">Reprogramado</span>',
     finished:    '<span class="badge badge-gray">Finalizado</span>',
@@ -3138,6 +3158,7 @@
   const EVENT_STATUS_HINTS = {
     draft:       'No visible en la pagina publica. Util para preparar el evento antes de publicarlo.',
     published:   'Visible en la cartelera y disponible para reservar.',
+    upcoming:    'Visible en la cartelera como "Próximamente". No permite reservaciones hasta que se cambie a Publicado.',
     sold_out:    'Visible, pero marcado como agotado (no se pueden hacer nuevas reservaciones).',
     rescheduled: 'Indica la fecha nueva arriba y la fecha original aqui para mostrarla a los clientes.',
     finished:    'Ya no es visible en la cartelera. Util para eventos pasados (incluso anteriores a StagePass) — puedes seguir subiendo fotos/videos a su galeria.',
@@ -3222,6 +3243,8 @@
     const hint = document.getElementById('evStatusHint');
     hint.textContent = EVENT_STATUS_HINTS[status] || '';
     hint.style.display = hint.textContent ? '' : 'none';
+    const promoField = document.getElementById('promoVideoField');
+    if (promoField) promoField.style.display = (status === 'upcoming') ? '' : 'none';
   }
 
   function isoToDatetimeLocal(iso) {
@@ -3232,6 +3255,17 @@
 
   let EVENT_BANNER_FILE = null;
   let EVENT_FLYER_FILE  = null;
+
+  let EVENT_PROMO_VIDEO_FILE = null;
+
+  function previewPromoVideo(input) {
+    const file = input.files[0];
+    if (!file) return;
+    EVENT_PROMO_VIDEO_FILE = file;
+    const url = URL.createObjectURL(file);
+    const vid = document.getElementById('evPromoVideoPreview');
+    vid.src = url; vid.style.display = '';
+  }
 
   function previewEventImage(input, previewId, kind) {
     const file = input.files[0];
@@ -3308,9 +3342,15 @@
     document.getElementById('evDuration').value     = ev ? (ev.duration_min||150) : 150;
     document.getElementById('evBannerUrl').value    = (ev && ev.banner_url) || '';
     document.getElementById('evFlyerUrl').value     = (ev && ev.flyer_url) || '';
-    EVENT_BANNER_FILE = null; EVENT_FLYER_FILE = null;
+    EVENT_BANNER_FILE = null; EVENT_FLYER_FILE = null; EVENT_PROMO_VIDEO_FILE = null;
     document.getElementById('evBannerFile').value = '';
     document.getElementById('evFlyerFile').value  = '';
+    document.getElementById('evPromoVideoFile').value = '';
+    const promoVidPrev = document.getElementById('evPromoVideoPreview');
+    const promoVidUrl  = (ev && ev.promo_video_url) || '';
+    document.getElementById('evPromoVideoUrl').value = promoVidUrl;
+    if (promoVidUrl) { promoVidPrev.src = promoVidUrl; promoVidPrev.style.display = ''; }
+    else { promoVidPrev.style.display = 'none'; promoVidPrev.src = ''; }
     const bannerPrev = document.getElementById('evBannerPreview');
     const flyerPrev  = document.getElementById('evFlyerPreview');
     if (ev && ev.banner_url) { bannerPrev.src = ev.banner_url; bannerPrev.style.display = ''; } else { bannerPrev.style.display = 'none'; }
@@ -3365,6 +3405,12 @@
         flyerUrl = await sbUpload('event-assets', folder+'/flyer.'+ext, EVENT_FLYER_FILE);
         flyerUrl += '?t=' + Date.now();
       }
+      if (EVENT_PROMO_VIDEO_FILE) {
+        btn.textContent = 'Subiendo video...';
+        const ext = (EVENT_PROMO_VIDEO_FILE.name.split('.').pop() || 'mp4').toLowerCase();
+        const promoUrl = await sbUpload('event-assets', folder+'/promo.'+ext, EVENT_PROMO_VIDEO_FILE);
+        document.getElementById('evPromoVideoUrl').value = promoUrl + '?t=' + Date.now();
+      }
       btn.textContent = 'Guardando...';
 
     const status = document.getElementById('evStatus').value;
@@ -3394,6 +3440,7 @@
       banner_url: bannerUrl,
       flyer_url: flyerUrl,
       flyer_overlay_opacity: parseInt(document.getElementById('evFlyerOpacity').value) / 100,
+      promo_video_url: document.getElementById('evPromoVideoUrl').value.trim() || null,
       whatsapp_number: document.getElementById('evWhatsapp').value.trim() || null,
       restrictions: restrictions
     };

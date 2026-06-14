@@ -93,6 +93,7 @@
     .av-few  { background:rgba(26,26,0,.85); color:#cc0; border:1px solid #444400; }
     .av-ok   { background:rgba(0,26,0,.85); color:#0c6; border:1px solid #004400; }
     .av-sold { background:rgba(26,0,0,.85); color:#c33; border:1px solid #440000; }
+    .av-soon { background:rgba(26,20,0,.85); color:#fa0; border:1px solid #443300; }
     .card-info { padding:13px 14px 15px; }
     .card-name { font-family:var(--fu); font-size:15px; font-weight:700; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .card-meta { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -101,6 +102,7 @@
     .cs-few  { background:#1a1a00; color:#cc0; border:1px solid #333300; }
     .cs-ok   { background:#001a00; color:#0c6; border:1px solid #003300; }
     .cs-sold { background:#1a0000; color:#c33; border:1px solid #330000; }
+    .cs-soon { background:#1a1400; color:#fa0; border:1px solid #332200; }
 
     /* OVERLAY (flyer 9:16) */
     .overlay-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); z-index:200; animation:bgIn .3s; }
@@ -514,8 +516,37 @@
       var d    = card.dataset;
       var tag  = d.status === 'sold' ? 'Agotado' : 'En Vivo';
       ovFlyer.className = 'overlay-flyer ' + (d.color || 'flyer--red');
+
+      // Limpiar video previo si existe
+      var prevVid = ovFlyer.querySelector('video');
+      if (prevVid) { prevVid.pause(); prevVid.src = ''; }
+
+      // ── PRÓXIMAMENTE: solo video + banner, sin info ──────────
+      if (d.status === 'upcoming') {
+        ovFlyer.style.backgroundImage = '';
+        ovFlyer.style.padding = '0';
+        if (d.promo) {
+          ovFlyer.innerHTML = '<video src="' + d.promo + '" style="width:100%;height:100%;object-fit:cover;border-radius:6px" muted loop autoplay playsinline></video>';
+        } else if (d.flyer) {
+          var op = parseFloat(d.opacity) || 0.5;
+          ovFlyer.style.backgroundImage = 'linear-gradient(rgba(10,10,10,' + op + '),rgba(10,10,10,' + op + ')), url("' + d.flyer + '")';
+          ovFlyer.style.backgroundSize = 'cover';
+          ovFlyer.style.backgroundPosition = 'center';
+          ovFlyer.innerHTML = '<div style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff;text-align:center;padding:20px">PR\u00d3XIMAMENTE</div>';
+        } else {
+          ovFlyer.innerHTML = '<div style="font-family:var(--fd);font-size:36px;letter-spacing:6px;color:#fff;text-align:center;padding:20px">PR\u00d3XIMAMENTE</div>';
+        }
+        ovFlyer.style.justifyContent = 'center';
+        ovFlyer.style.alignItems = 'center';
+        ovOverlay.style.display='flex';
+        setTimeout(function(){ ovOverlay.classList.add('open'); },10);
+        return;
+      }
+
+      // ── NORMAL: banner + info ────────────────────────────────
+      ovFlyer.style.padding = '';
       if (d.flyer) {
-        var op = (d.opacity !== undefined && d.opacity !== '') ? parseFloat(d.opacity) : 0.5;
+        var op = parseFloat(d.opacity) || 0.5;
         ovFlyer.style.backgroundImage = 'linear-gradient(rgba(10,10,10,'+op+'),rgba(10,10,10,'+op+')), url("' + d.flyer + '")';
         ovFlyer.style.backgroundSize = 'cover';
         ovFlyer.style.backgroundPosition = 'center';
@@ -575,17 +606,24 @@
 
     function attachCardEvents() {
       document.querySelectorAll('.event-card').forEach(function(card) {
-        card.addEventListener('click', function() { openOverlay(card); });
+        function handleActivate() {
+          if (card.dataset.status === 'upcoming') {
+            showToast('Próximamente — detalles y reservaciones muy pronto.');
+            return;
+          }
+          openOverlay(card);
+        }
+        card.addEventListener('click', handleActivate);
         card.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOverlay(card); }
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(); }
         });
       });
     }
 
     function loadEvents() {
       sbGet('events', {
-        select: 'id,band_name,cover_of,event_date,price_presale,price_door,presale_active,status,banner_url,flyer_url,flyer_overlay_opacity,venues(name)',
-        status: 'in.(published,sold_out)',
+        select: 'id,band_name,cover_of,event_date,price_presale,price_door,presale_active,status,banner_url,flyer_url,flyer_overlay_opacity,promo_video_url,venues(name)',
+        status: 'in.(published,sold_out,upcoming)',
         order:  'event_date.asc',
         limit:  '12'
       }).then(function(events) {
@@ -595,16 +633,17 @@
           return;
         }
         var html = events.map(function(ev, i) {
-          var sold   = ev.status === 'sold_out';
+          var sold     = ev.status === 'sold_out';
+          var upcoming = ev.status === 'upcoming';
           var price  = ev.presale_active && ev.price_presale ? fmtPrice(ev.price_presale) : (ev.price_door ? fmtPrice(ev.price_door) : '');
           var color  = FLYER_COLORS[i % FLYER_COLORS.length];
           var bg     = CARD_BG[i % CARD_BG.length];
           var venue  = (ev.venues && ev.venues.name) ? ev.venues.name : 'McCarthys Bar';
-          var avCls  = sold ? 'av-sold' : 'av-ok';
-          var avTxt  = sold ? 'Agotado' : 'Disponible';
-          var stCls  = sold ? 'cs-sold' : 'cs-ok';
-          var cta    = sold ? 'Lista de Espera' : 'Reservar Mesa';
-          var status = sold ? 'sold' : 'ok';
+          var avCls  = sold ? 'av-sold' : (upcoming ? 'av-soon' : 'av-ok');
+          var avTxt  = sold ? 'Agotado' : (upcoming ? 'Próximamente' : 'Disponible');
+          var stCls  = sold ? 'cs-sold' : (upcoming ? 'cs-soon' : 'cs-ok');
+          var cta    = sold ? 'Lista de Espera' : (upcoming ? 'Anuncio próximo' : 'Reservar Mesa');
+          var status = sold ? 'sold' : (upcoming ? 'upcoming' : 'ok');
           var ds     = fmtDateShort(ev.event_date);
           var banner = ev.banner_url
             ? '<img src="' + ev.banner_url + '" alt="' + ev.band_name + '" loading="lazy"/>'
@@ -621,18 +660,29 @@
             + ' data-color="' + color + '"'
             + ' data-flyer="' + (ev.flyer_url || '') + '"'
             + ' data-opacity="' + (ev.flyer_overlay_opacity != null ? ev.flyer_overlay_opacity : 0.5) + '"'
+            + ' data-promo="' + (ev.promo_video_url || '') + '"'
             + ' data-status="' + status + '">'
             + '<div class="card-front">'
-            + '<div class="card-banner">' + banner
-            + '<span class="card-price">' + price + '</span>'
-            + '<span class="card-avail ' + avCls + '">' + avTxt + '</span>'
-            + '</div>'
-            + '<div class="card-info">'
-            + '<p class="card-name">' + ev.band_name + ' &mdash; ' + (ev.cover_of || '') + '</p>'
-            + '<div class="card-meta">'
-            + '<span class="card-venue">' + venue + ' &middot; ' + ds + '</span>'
-            + '<span class="card-status ' + stCls + '">' + avTxt + '</span>'
-            + '</div></div></div></article>';
+            + (upcoming
+              ? '<div class="card-banner">' + banner
+                + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)">'
+                + '<span style="font-family:var(--fd);font-size:28px;letter-spacing:4px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)">PRÓXIMAMENTE</span></div>'
+                + '</div>'
+                + '<div class="card-info"><p class="card-name">' + ev.band_name + (ev.cover_of ? ' &mdash; ' + ev.cover_of : '') + '</p>'
+                + '<div class="card-meta"><span class="card-venue">' + venue + '</span>'
+                + '<span class="card-status cs-soon">Próximamente</span></div></div>'
+              : '<div class="card-banner">' + banner
+                + '<span class="card-price">' + price + '</span>'
+                + '<span class="card-avail ' + avCls + '">' + avTxt + '</span>'
+                + '</div>'
+                + '<div class="card-info">'
+                + '<p class="card-name">' + ev.band_name + ' &mdash; ' + (ev.cover_of || '') + '</p>'
+                + '<div class="card-meta">'
+                + '<span class="card-venue">' + venue + ' &middot; ' + ds + '</span>'
+                + '<span class="card-status ' + stCls + '">' + avTxt + '</span>'
+                + '</div></div>'
+            )
+            + '</div></article>';
         }).join('');
         grid.innerHTML = html;
         attachCardEvents();
