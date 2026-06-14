@@ -1669,6 +1669,7 @@
   </div>
   <div class="modal-footer">
     <button class="btn-sm btn-outline" onclick="closeUserModal()">Cancelar</button>
+    <button class="btn-sm btn-outline" id="userDeleteBtn" style="display:none;color:#e44;border-color:#330000" onclick="deleteUser()">Eliminar</button>
     <button class="btn-sm btn-red" id="userModalSaveBtn" onclick="saveUser()">Crear</button>
   </div>
 </div>
@@ -4134,6 +4135,8 @@
 
     document.getElementById('userModalTitle').textContent = isNew ? 'NUEVO USUARIO' : 'EDITAR USUARIO';
     document.getElementById('userModalSaveBtn').textContent = isNew ? 'Crear' : 'Guardar';
+    const delBtn = document.getElementById('userDeleteBtn');
+    if (delBtn) delBtn.style.display = isNew ? 'none' : '';
     document.getElementById('uFullName').value = u ? u.full_name : '';
     document.getElementById('uEmail').value     = u ? u.email : '';
     document.getElementById('uPhone').value     = (u && u.phone) || '';
@@ -4212,6 +4215,32 @@
     } catch(err) {
       console.error('Error guardando usuario:', err);
       showToast('No se pudo guardar el usuario. Revisa que el email no este ya en uso.','error');
+    }
+  }
+
+  async function deleteUser() {
+    if (!editingUserId) return;
+    const u = ALL_USERS.find(function(x){ return x.id === editingUserId; });
+    const name = u ? u.full_name : 'este usuario';
+    if (!(await showConfirm('Eliminar a ' + name + '? Esta accion no se puede deshacer. Si tiene cuenta de acceso al panel, dejara de poder entrar.', { title:'ELIMINAR USUARIO', okLabel:'Eliminar' }))) return;
+    try {
+      // 1. Eliminar de la tabla users
+      await sbDelete('users', 'id=eq.' + editingUserId);
+      // 2. Si tiene auth_id, eliminar también de Supabase Auth via la Edge Function
+      if (u && u.auth_id) {
+        await sbFetch(SB_URL + '/functions/v1/invite-user', {
+          method: 'DELETE',
+          headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + AUTH_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auth_id: u.auth_id })
+        }).catch(function(e){ console.warn('No se pudo eliminar Auth account:', e); });
+      }
+      closeUserModal();
+      loadUsers();
+      loadRecentActivity();
+      showToast('Usuario eliminado.', 'success');
+    } catch(err) {
+      console.error('Error eliminando usuario:', err);
+      showToast('No se pudo eliminar el usuario.', 'error');
     }
   }
 
